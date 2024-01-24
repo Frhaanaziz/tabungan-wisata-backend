@@ -94,10 +94,13 @@ export class PaymentsService {
             contains: search,
           },
         },
-      },
+      } satisfies Prisma.PaymentWhereInput,
       include: {
         user: true,
-      },
+      } satisfies Prisma.PaymentInclude,
+      orderBy: {
+        date: 'desc',
+      } satisfies Prisma.PaymentOrderByWithRelationInput,
     });
   }
 
