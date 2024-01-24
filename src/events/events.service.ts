@@ -92,10 +92,13 @@ export class EventsService {
         name: {
           contains: search,
         },
-      },
+      } satisfies Prisma.EventWhereInput,
       include: {
         school: true,
-      },
+      } satisfies Prisma.EventInclude,
+      orderBy: {
+        startDate: 'desc',
+      } satisfies Prisma.EventOrderByWithRelationInput,
     });
   }
 }
