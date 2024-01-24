@@ -99,10 +99,13 @@ export class UsersService {
         email: {
           contains: search,
         },
-      },
+      } satisfies Prisma.UserWhereInput,
       include: {
         school: true,
-      },
+      } satisfies Prisma.UserInclude,
+      orderBy: {
+        createdAt: 'desc',
+      } satisfies Prisma.UserOrderByWithRelationInput,
     });
   }
 
