@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { getMidtransApp } from 'src/utils/axios';
-import { CreateTransactionDto } from './dto/CreateTransaction.dto';
+import { CreateTransactionDto } from './dto/create-transaction.dto';
 
 @Injectable()
 export class MidtransService {
