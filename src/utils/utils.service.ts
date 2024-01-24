@@ -17,10 +17,12 @@ export class UtilsService {
     model,
     where,
     include,
+    orderBy,
   }: {
     page: number;
     take: number;
     model: Prisma.ModelName;
+    orderBy: object;
     where?: object;
     include?: object;
   }) {
@@ -31,6 +33,11 @@ export class UtilsService {
     const totalPages = Math.ceil(totalRow / rowsPerPage);
     let rows = [];
 
+    this.prisma.payment.findMany({
+      orderBy: {
+        date: 'desc',
+      },
+    });
     try {
       if (where) {
         rows = await this.prisma[model].findMany({
@@ -38,12 +45,14 @@ export class UtilsService {
           take: rowsPerPage,
           where,
           include,
+          orderBy,
         });
       } else {
         rows = await this.prisma[model].findMany({
           skip: (savePage - 1) * rowsPerPage,
           take: rowsPerPage,
           include,
+          orderBy,
         });
       }
     } catch (error) {
