@@ -85,12 +85,6 @@ export class SchoolsService {
     take: number;
     search: string;
   }) {
-    const include: Prisma.SchoolInclude = {
-      _count: {
-        select: { events: true, users: true },
-      },
-    };
-
     return this.utilsService.getPaginatedResult({
       page,
       take,
@@ -99,8 +93,15 @@ export class SchoolsService {
         name: {
           contains: search,
         },
-      },
-      include,
+      } satisfies Prisma.SchoolWhereInput,
+      include: {
+        _count: {
+          select: { events: true, users: true },
+        },
+      } satisfies Prisma.SchoolInclude,
+      orderBy: {
+        createdAt: 'desc',
+      } satisfies Prisma.SchoolOrderByWithRelationInput,
     });
   }
 }
