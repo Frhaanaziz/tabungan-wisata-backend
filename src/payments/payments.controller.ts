@@ -7,6 +7,7 @@ import {
   Query,
   Delete,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -16,6 +17,7 @@ import { MidtransPaymentNotificationDto } from './dto/payment-notification.dto';
 
 @Controller('payments')
 export class PaymentsController {
+  private log = new Logger('PaymentsController');
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @Post()
@@ -62,8 +64,8 @@ export class PaymentsController {
   async midtransPaymentNotification(
     @Body() body: MidtransPaymentNotificationDto,
   ) {
-    const { order_id, gross_amount, status_code } = body;
-    console.log(gross_amount, status_code);
+    this.log.verbose('Midtrans payment notification received');
+    const { order_id } = body;
 
     const payment = await this.paymentsService.getPayment({ id: order_id });
     if (payment) {

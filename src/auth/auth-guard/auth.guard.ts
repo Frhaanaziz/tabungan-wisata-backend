@@ -59,12 +59,10 @@ export class AuthGuard implements CanActivate {
     }
 
     if (isAdmin) {
-      this.logger.warn('Only admins can access.');
       if (request.user.role !== 'admin') {
         this.logger.fatal('Non-admin access denied.');
         throw new UnauthorizedException('Only admins can access.');
       }
-      this.logger.verbose('Admin access granted.');
     }
 
     return true;
