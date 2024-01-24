@@ -11,7 +11,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UsersService } from 'src/users/users.service';
 import { UtilsService } from 'src/utils/utils.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
-import crypto from 'crypto';
+import { createHash } from 'crypto';
 import { MidtransPaymentNotificationDto } from './dto/payment-notification.dto';
 
 @Injectable()
@@ -163,8 +163,7 @@ export class PaymentsService {
     }: MidtransPaymentNotificationDto,
     payment: Payment,
   ) {
-    const hash = crypto
-      .createHash('sha512')
+    const hash = createHash('sha512')
       .update(
         `${order_id}${status_code}${gross_amount}${process.env.MIDTRANS_SERVER_KEY}`,
       )
