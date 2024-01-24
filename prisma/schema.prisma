@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+  // relationMode = "prisma"
+}
+
+model User {
+  id            String              @id @default(cuid())
+  name          String
+  email         String              @unique
+  password      String?
+  role          String              @default("student")
+  image         String?
+  emailVerified Boolean             @default(false)
+  schoolId      String?
+  payments      Payment[]
+  registrations EventRegistration[]
+  verification  Verification[]
+  accounts      Account[]
+  school        School?             @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([schoolId], name: "schoolId")
+}
+
+model School {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  address   String
+  contact   String
+  users     User[]
+  events    Event[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Event {
+  id            String              @id @default(cuid())
+  name          String
+  description   String              @db.Text
+  include       String              @db.Text
+  startDate     DateTime
+  endDate       DateTime
+  schoolId      String
+  cost          Float
+  images        File[]
+  registrations EventRegistration[]
+  school        School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([schoolId], name: "schoolId")
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  amount        Int
+  date          DateTime      @default(now())
+  userId        String
+  paymentMethod String?
+  status        PaymentStatus @default(pending)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId], name: "userId")
+}
+
+model EventRegistration {
+  id      String @id @default(cuid())
+  eventId String
+  userId  String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([eventId], name: "eventId")
+  @@index([userId], name: "userId")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model File {
+  id           String   @id @default(cuid())
+  url          String   @unique
+  thumbnailUrl String?
+  size         Int
+  uploadedAt   DateTime
+  event        Event?   @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  eventId      String?
+
+  @@index([eventId], name: "eventId")
+}
+
+model Verification {
+  id        String   @id @default(cuid())
+  type      String
+  token     String   @unique(length: 250) @db.Text
+  expiresAt DateTime
+  active    Boolean  @default(false)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId], name: "userId")
+}
+
+enum UserRole {
+  student
+  teacher
+  admin
+}
+
+enum PaymentStatus {
+  pending
+  completed
+  failed
+}

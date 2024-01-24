@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql
+    container_name: my-mysql-container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: testing
+      MYSQL_DATABASE: testing
+      MYSQL_USER: testing
+      MYSQL_PASSWORD: testing
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h127.0.0.1', '-P3306']
+      interval: 10s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mysql-data:
