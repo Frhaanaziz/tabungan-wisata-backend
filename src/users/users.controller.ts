@@ -64,14 +64,6 @@ export class UsersController {
     });
   }
 
-  @Patch(':id/school')
-  updateUserSchoolByCode(
-    @Param('id') id: string,
-    @Body() { schoolCode }: UpdateUserSchoolDto,
-  ) {
-    return this.usersService.updateUserSchoolByCode({ schoolCode, userId: id });
-  }
-
   @Get(':id')
   getUserById(@Param('id') id: string, @Query('payments') payments: boolean) {
     return this.usersService.getUser({
@@ -80,8 +72,13 @@ export class UsersController {
     });
   }
 
+  @Get(':id/balance')
+  getUserBalance(@Param('id') id: string) {
+    return this.usersService.getUserBalance(id);
+  }
+
   @Get(':id/payments')
-  getUserPaymentsById(
+  getUserPayments(
     @Param('id') id: string,
     @Query()
     {
@@ -110,6 +107,14 @@ export class UsersController {
         userId: id,
       },
     });
+  }
+
+  @Patch(':id/school')
+  updateUserSchoolByCode(
+    @Param('id') id: string,
+    @Body() { schoolCode }: UpdateUserSchoolDto,
+  ) {
+    return this.usersService.updateUserSchoolByCode({ schoolCode, userId: id });
   }
 
   @Patch(':id/emailVerified')
