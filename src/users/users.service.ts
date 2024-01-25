@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, User } from '@prisma/client';
+import { Payment, Prisma, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UtilsService } from 'src/utils/utils.service';
@@ -42,7 +42,10 @@ export class UsersService {
       take,
       cursor,
       where,
-      orderBy,
+      orderBy: {
+        updatedAt: 'desc',
+        ...orderBy,
+      },
       include: {
         school: true,
       },
@@ -71,6 +74,20 @@ export class UsersService {
     });
   }
 
+  async getUserBalance(userId: string) {
+    const amountSum = await this.prisma.payment.aggregate({
+      _sum: {
+        amount: true,
+      },
+      where: {
+        userId,
+        status: 'completed',
+      },
+    });
+
+    return amountSum._sum.amount ?? 0;
+  }
+
   async getUsersPaginated({
     page,
     take,
@@ -96,7 +113,7 @@ export class UsersService {
         school: true,
       } satisfies Prisma.UserInclude,
       orderBy: {
-        createdAt: 'desc',
+        updatedAt: 'desc',
       } satisfies Prisma.UserOrderByWithRelationInput,
     });
   }
