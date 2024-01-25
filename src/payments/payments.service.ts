@@ -45,7 +45,13 @@ export class PaymentsService {
       take,
       cursor,
       where,
-      orderBy,
+      orderBy: {
+        date: 'desc',
+        ...orderBy,
+      },
+      include: {
+        user: true,
+      },
     });
   }
 
