@@ -31,7 +31,10 @@ export class FilesService {
       take,
       cursor,
       where,
-      orderBy,
+      orderBy: {
+        uploadedAt: 'desc',
+        ...orderBy,
+      },
     });
   }
 
