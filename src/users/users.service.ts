@@ -24,11 +24,7 @@ export class UsersService {
       where,
       include: {
         ...include,
-        school: {
-          include: {
-            events: true,
-          },
-        },
+        school: true,
       },
     });
   }
@@ -57,11 +53,7 @@ export class UsersService {
     return this.prisma.user.create({
       data,
       include: {
-        school: {
-          include: {
-            events: true,
-          },
-        },
+        school: true,
       },
     });
   }
