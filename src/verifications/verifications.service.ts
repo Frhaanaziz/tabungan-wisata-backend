@@ -34,7 +34,10 @@ export class VerificationsService {
       take,
       cursor,
       where,
-      orderBy,
+      orderBy: {
+        updatedAt: 'desc',
+        ...orderBy,
+      },
     });
   }
 
