@@ -37,7 +37,10 @@ export class SchoolsService {
       take,
       cursor,
       where,
-      orderBy,
+      orderBy: {
+        updatedAt: 'desc',
+        ...orderBy,
+      },
       include: {
         _count: {
           select: { events: true, users: true },
@@ -100,7 +103,7 @@ export class SchoolsService {
         },
       } satisfies Prisma.SchoolInclude,
       orderBy: {
-        createdAt: 'desc',
+        updatedAt: 'desc',
       } satisfies Prisma.SchoolOrderByWithRelationInput,
     });
   }
