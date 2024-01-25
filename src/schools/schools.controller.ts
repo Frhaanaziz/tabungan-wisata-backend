@@ -1,13 +1,17 @@
 import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { SchoolsService } from './schools.service';
-import { School } from '@prisma/client';
+import { Event, School } from '@prisma/client';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { Admin } from 'src/auth/admin.decorator';
 import { UpdateSchoolDto } from './dto/update-school.dto';
+import { EventsService } from 'src/events/events.service';
 
 @Controller('schools')
 export class SchoolsController {
-  constructor(private readonly schoolsService: SchoolsService) {}
+  constructor(
+    private readonly schoolsService: SchoolsService,
+    private readonly eventsService: EventsService,
+  ) {}
 
   @Admin()
   @Post()
@@ -40,6 +44,15 @@ export class SchoolsController {
     }
 
     return this.schoolsService.getSchools({});
+  }
+
+  @Get(':id/events')
+  getSchoolEvents(@Param('id') id: string): Promise<Event[]> {
+    return this.eventsService.getEvents({
+      where: {
+        schoolId: id,
+      },
+    });
   }
 
   @Admin()
