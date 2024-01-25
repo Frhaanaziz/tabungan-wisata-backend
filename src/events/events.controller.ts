@@ -12,6 +12,7 @@ import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { Admin } from 'src/auth/admin.decorator';
+import { Public } from 'src/auth/public.decorator';
 
 @Controller('events')
 export class EventsController {
@@ -52,6 +53,15 @@ export class EventsController {
     return this.eventsService.getEvents({});
   }
 
+  @Public()
+  @Get('/ids')
+  getAllEventsId() {
+    return this.eventsService.getEvents({
+      select: { id: true },
+    });
+  }
+
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.eventsService.getEvent({ id });
