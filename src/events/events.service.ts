@@ -38,7 +38,10 @@ export class EventsService {
         take,
         cursor,
         where,
-        orderBy,
+        orderBy: {
+          startDate: 'desc',
+          ...orderBy,
+        },
         select,
       });
     }
