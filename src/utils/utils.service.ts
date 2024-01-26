@@ -110,10 +110,8 @@ export class UtilsService {
   getFirstName(fullName: string) {
     if (!fullName) return '';
 
-    // Split the full name string into an array of words
     const words = fullName.split(' ');
 
-    // Take the first element of the array as the first name
     const firstName = words[0];
 
     return firstName ?? '';
@@ -122,10 +120,8 @@ export class UtilsService {
   getLastName(fullName: string) {
     if (!fullName) return undefined;
 
-    // Split the full name string into an array of words
     const words = fullName.split(' ');
 
-    // Take the last element of the array as the last name
     const lastName = words[words.length - 1];
 
     return lastName;
