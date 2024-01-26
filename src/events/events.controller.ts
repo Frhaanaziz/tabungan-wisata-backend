@@ -13,6 +13,7 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { Admin } from 'src/auth/admin.decorator';
 import { Public } from 'src/auth/public.decorator';
+import { GetPaginatedDataDto } from 'src/utils/dto/get-paginated-data.dto';
 
 @Controller('events')
 export class EventsController {
@@ -32,15 +33,7 @@ export class EventsController {
   @Get()
   getAllEvents(
     @Query()
-    {
-      page,
-      take = '10',
-      search = '',
-    }: {
-      page?: string;
-      take?: string;
-      search?: string;
-    },
+    { page, take = '10', search = '' }: GetPaginatedDataDto,
   ) {
     if (page) {
       return this.eventsService.getEventsPaginated({

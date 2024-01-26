@@ -5,6 +5,7 @@ import { CreateSchoolDto } from './dto/create-school.dto';
 import { Admin } from 'src/auth/admin.decorator';
 import { UpdateSchoolDto } from './dto/update-school.dto';
 import { EventsService } from 'src/events/events.service';
+import { GetPaginatedDataDto } from 'src/utils/dto/get-paginated-data.dto';
 
 @Controller('schools')
 export class SchoolsController {
@@ -25,15 +26,7 @@ export class SchoolsController {
   @Get()
   getAllSchool(
     @Query()
-    {
-      page,
-      take = '10',
-      search = '',
-    }: {
-      page?: string;
-      take?: string;
-      search?: string;
-    },
+    { page, take = '10', search = '' }: GetPaginatedDataDto,
   ) {
     if (page) {
       return this.schoolsService.getSchoolsPaginated({

@@ -15,6 +15,7 @@ import { Public } from 'src/auth/public.decorator';
 import { Admin } from 'src/auth/admin.decorator';
 import { UpdateUserSchoolDto } from './dto/update-user-school.dto';
 import { PaymentsService } from 'src/payments/payments.service';
+import { GetPaginatedDataDto } from 'src/utils/dto/get-paginated-data.dto';
 
 @Controller('users')
 export class UsersController {
@@ -28,15 +29,7 @@ export class UsersController {
   @Get()
   getAllUser(
     @Query()
-    {
-      page,
-      take = '10',
-      search = '',
-    }: {
-      page?: string;
-      take?: string;
-      search?: string;
-    },
+    { page, take = '10', search = '' }: GetPaginatedDataDto,
   ) {
     if (page) {
       return this.usersService.getUsersPaginated({

@@ -22,6 +22,18 @@ import { MidtransModule } from './midtrans/midtrans.module';
     ConfigModule.forRoot({
       validationSchema: configValidationSchema,
     }),
+    // ThrottlerModule.forRoot([
+    //   {
+    //     name: 'short',
+    //     ttl: 1_000, // 1 minute
+    //     limit: 3,
+    //   },
+    //   {
+    //     name: 'long',
+    //     ttl: 60_000, // 1 minute
+    //     limit: 100,
+    //   },
+    // ]),
     PrismaModule,
     SchoolsModule,
     UsersModule,
@@ -34,7 +46,11 @@ import { MidtransModule } from './midtrans/midtrans.module';
     FilesModule,
     MidtransModule,
   ],
-  providers: [AppService, { provide: APP_GUARD, useClass: AuthGuard }],
+  providers: [
+    AppService,
+    { provide: APP_GUARD, useClass: AuthGuard },
+    // { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
   controllers: [AppController],
 })
 export class AppModule {}

@@ -14,6 +14,7 @@ import { CreatePaymentDto } from './dto/create-payment.dto';
 import { Admin } from 'src/auth/admin.decorator';
 import { Public } from 'src/auth/public.decorator';
 import { MidtransPaymentNotificationDto } from './dto/payment-notification.dto';
+import { GetPaginatedDataDto } from 'src/utils/dto/get-paginated-data.dto';
 
 @Controller('payments')
 export class PaymentsController {
@@ -38,15 +39,7 @@ export class PaymentsController {
   @Get()
   getAllPayments(
     @Query()
-    {
-      page,
-      take = '10',
-      search = '',
-    }: {
-      page?: string;
-      take?: string;
-      search?: string;
-    },
+    { page, take = '10', search = '' }: GetPaginatedDataDto,
   ) {
     if (page) {
       return this.paymentsService.getPaymentsPaginated({
