@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Payment, Prisma, User } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { Prisma, User } from '@prisma/client';
+import { PrismaService } from 'nestjs-prisma';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UtilsService } from 'src/utils/utils.service';
 import { VerificationsService } from 'src/verifications/verifications.service';

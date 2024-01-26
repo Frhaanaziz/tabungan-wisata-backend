@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma, Verification } from '@prisma/client';
 import { ResendService } from 'nestjs-resend';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'nestjs-prisma';
 import { ONEDAY_IN_MILLISECONDS } from 'src/utils/utils';
 import { UtilsService } from 'src/utils/utils.service';
 

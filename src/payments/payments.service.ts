@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Payment, PaymentStatus, Prisma } from '@prisma/client';
 import { MidtransService } from 'src/midtrans/midtrans.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'nestjs-prisma';
 import { UsersService } from 'src/users/users.service';
 import { UtilsService } from 'src/utils/utils.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -216,6 +216,7 @@ export class PaymentsService {
         where: { id: order_id },
         data: {
           status: PaymentStatus.failed,
+          paymentMethod: payment_type,
         },
       });
       responseData = payment;
