@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PrismaModule } from './prisma/prisma.module';
 import { SchoolsModule } from './schools/schools.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
@@ -16,6 +15,7 @@ import { UtilsModule } from './utils/utils.module';
 import { VerificationsModule } from './verifications/verifications.module';
 import { FilesModule } from './files/files.module';
 import { MidtransModule } from './midtrans/midtrans.module';
+import { PrismaModule } from 'nestjs-prisma';
 
 @Module({
   imports: [
@@ -34,7 +34,15 @@ import { MidtransModule } from './midtrans/midtrans.module';
     //     limit: 100,
     //   },
     // ]),
-    PrismaModule,
+    PrismaModule.forRoot({
+      isGlobal: true,
+      prismaServiceOptions: {
+        explicitConnect: true,
+        prismaOptions: {
+          log: ['info', 'warn'],
+        },
+      },
+    }),
     SchoolsModule,
     UsersModule,
     AuthModule,
