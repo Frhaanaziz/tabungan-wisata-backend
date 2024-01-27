@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { SchoolsModule } from './schools/schools.module';
@@ -15,7 +15,7 @@ import { UtilsModule } from './utils/utils.module';
 import { VerificationsModule } from './verifications/verifications.module';
 import { FilesModule } from './files/files.module';
 import { MidtransModule } from './midtrans/midtrans.module';
-import { PrismaModule } from 'nestjs-prisma';
+import { PrismaModule, QueryInfo, loggingMiddleware } from 'nestjs-prisma';
 
 @Module({
   imports: [
@@ -38,9 +38,17 @@ import { PrismaModule } from 'nestjs-prisma';
       isGlobal: true,
       prismaServiceOptions: {
         explicitConnect: true,
-        prismaOptions: {
-          log: ['info', 'warn'],
-        },
+        middlewares: [
+          loggingMiddleware({
+            logger: new Logger('Prisma Query'),
+            logLevel: 'debug', // default is `debug`
+            logMessage: (query: QueryInfo) =>
+              `${query.model}.${query.action} - ${query.executionTime}ms`,
+          }),
+        ],
+        // prismaOptions: {
+        //   log: ['info', 'warn', 'query'],
+        // },
       },
     }),
     SchoolsModule,
