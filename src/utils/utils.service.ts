@@ -26,18 +26,20 @@ export class UtilsService {
     where?: object;
     include?: object;
   }) {
-    const totalRow = await this.prisma[model].count();
+    const totalRow = await this.prisma[model].count({
+      where,
+    });
 
     const savePage = page < 1 ? 1 : page;
     const rowsPerPage = take;
-    const totalPages = Math.ceil(totalRow / rowsPerPage);
+    const totalPages = Math.ceil(totalRow / rowsPerPage) || 1;
+    const isFirstPage = savePage === 1;
+    const isLastPage = savePage >= totalPages;
+    const previousPage = isFirstPage ? 1 : savePage - 1;
+    const nextPage = isLastPage ? totalPages : savePage + 1;
+
     let rows = [];
 
-    this.prisma.payment.findMany({
-      orderBy: {
-        date: 'desc',
-      },
-    });
     try {
       if (where) {
         rows = await this.prisma[model].findMany({
@@ -63,9 +65,13 @@ export class UtilsService {
 
     return {
       currentPage: page,
-      totalRow,
+      isFirstPage,
+      isLastPage,
+      previousPage,
+      nextPage,
       rowsPerPage,
       totalPages,
+      totalRow,
       content: rows,
     };
   }
