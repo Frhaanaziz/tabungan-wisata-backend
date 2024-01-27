@@ -88,6 +88,7 @@ export class SchoolsService {
     take: number;
     search: string;
   }) {
+    console.log(search);
     return this.utilsService.getPaginatedResult({
       page,
       take,
