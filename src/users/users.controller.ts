@@ -58,6 +58,18 @@ export class UsersController {
     });
   }
 
+  @Admin()
+  @Get('/growth-percentage')
+  getPercentageFromLastMonth() {
+    return this.usersService.getUserGrowthPercentage();
+  }
+
+  @Admin()
+  @Get('/total')
+  getTotalUsers() {
+    return this.usersService.getTotalUsers();
+  }
+
   @Get(':id')
   getUserById(@Param('id') id: string, @Query('payments') payments: boolean) {
     return this.usersService.getUser({
