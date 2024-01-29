@@ -192,4 +192,27 @@ export class UsersService {
 
     return updatedUser;
   }
+
+  async getUserGrowthPercentage() {
+    const currentMonth = new Date().getMonth(); // get current month
+    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1; // get last month
+
+    const currentUsers = await this.prisma.user.count(); // get current user count
+    const lastMonthUsers = await this.prisma.user.count({
+      where: {
+        createdAt: {
+          gte: new Date(new Date().getFullYear(), lastMonth, 1),
+          lt: new Date(new Date().getFullYear(), lastMonth + 1, 1),
+        },
+      },
+    }); // get last month user count
+
+    const growth = ((currentUsers - lastMonthUsers) / lastMonthUsers) * 100;
+
+    return growth;
+  }
+
+  async getTotalUsers() {
+    return this.prisma.user.count();
+  }
 }
