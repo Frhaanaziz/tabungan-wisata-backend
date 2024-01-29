@@ -39,6 +39,9 @@ export class CreateTransactionDto {
 
   customer_details: CustomerDetails;
 
+  @IsString()
+  user_id: string;
+
   @IsOptional()
   item_details?: object | object[];
 }
