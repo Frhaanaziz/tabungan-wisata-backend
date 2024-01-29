@@ -43,8 +43,10 @@ model School {
 model Event {
   id            String              @id @default(cuid())
   name          String
-  description   String              @db.Text
+  highlight     String              @db.Text
+  itineraries   Itinerary[]
   include       String              @db.Text
+  exclude       String              @db.Text
   startDate     DateTime
   endDate       DateTime
   schoolId      String
@@ -54,6 +56,16 @@ model Event {
   school        School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@index([schoolId], name: "schoolId")
+}
+
+model Itinerary {
+  id          String @id @default(cuid())
+  name        String
+  description String @db.Text
+  eventId     String
+  event       Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId], name: "eventId")
 }
 
 model Payment {
