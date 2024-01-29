@@ -12,8 +12,6 @@ import {
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { Admin } from 'src/auth/admin.decorator';
-import { Public } from 'src/auth/public.decorator';
-import { MidtransPaymentNotificationDto } from './dto/payment-notification.dto';
 import { GetPaginatedDataDto } from 'src/utils/dto/get-paginated-data.dto';
 
 @Controller('payments')
@@ -50,25 +48,6 @@ export class PaymentsController {
     }
 
     return this.paymentsService.getPayments({});
-  }
-
-  @Public()
-  @Post('notification')
-  async midtransPaymentNotification(
-    @Body() body: MidtransPaymentNotificationDto,
-  ) {
-    this.log.verbose('Midtrans payment notification received');
-    const { order_id } = body;
-
-    const payment = await this.paymentsService.getPayment({ id: order_id });
-    if (payment) {
-      await this.paymentsService.updateStatusBasedOnMidtransResponse(
-        body,
-        payment,
-      );
-    }
-
-    return 'OK';
   }
 
   @Get(':id')
