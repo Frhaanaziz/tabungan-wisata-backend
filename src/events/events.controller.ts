@@ -29,7 +29,6 @@ export class EventsController {
     });
   }
 
-  @Admin()
   @Get()
   getAllEvents(
     @Query()
