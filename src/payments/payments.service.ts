@@ -3,16 +3,13 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
-import { Payment, PaymentStatus, Prisma } from '@prisma/client';
+import { Payment, Prisma } from '@prisma/client';
 import { MidtransService } from 'src/midtrans/midtrans.service';
 import { PrismaService } from 'nestjs-prisma';
 import { UsersService } from 'src/users/users.service';
 import { UtilsService } from 'src/utils/utils.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
-import { createHash } from 'crypto';
-import { MidtransPaymentNotificationDto } from './dto/payment-notification.dto';
 
 @Injectable()
 export class PaymentsService {
@@ -152,92 +149,12 @@ export class PaymentsService {
           last_name,
           email: user.email,
         },
+        user_id: userId,
       });
     } catch (error) {
       if (paymentId) await this.deletePayment({ id: paymentId });
       this.log.error('createPaymentTransaction', error);
       throw new InternalServerErrorException('Midtrans error');
     }
-  }
-
-  async updateStatusBasedOnMidtransResponse(
-    {
-      transaction_status,
-      order_id,
-      status_code,
-      gross_amount,
-      signature_key,
-      fraud_status,
-      payment_type,
-    }: MidtransPaymentNotificationDto,
-    payment: Payment,
-  ) {
-    const hash = createHash('sha512')
-      .update(
-        `${order_id}${status_code}${gross_amount}${process.env.MIDTRANS_SERVER_KEY}`,
-      )
-      .digest('hex');
-
-    if (signature_key !== hash) {
-      this.log.error(
-        'Invalid signature key in updateStatusBasedOnMidtransResponse',
-      );
-      throw new UnauthorizedException('Invalid signature key');
-    }
-
-    let responseData = null;
-
-    if (transaction_status == 'capture') {
-      if (fraud_status == 'accept') {
-        const payment = await this.updatePayment({
-          where: { id: order_id },
-          data: {
-            status: PaymentStatus.completed,
-            paymentMethod: payment_type,
-          },
-        });
-        responseData = payment;
-      }
-    } else if (transaction_status == 'settlement') {
-      const payment = await this.updatePayment({
-        where: { id: order_id },
-        data: {
-          status: PaymentStatus.completed,
-          paymentMethod: payment_type,
-        },
-      });
-      responseData = payment;
-    } else if (
-      transaction_status == 'cancel' ||
-      transaction_status == 'deny' ||
-      transaction_status == 'expire'
-    ) {
-      const payment = await this.updatePayment({
-        where: { id: order_id },
-        data: {
-          status: PaymentStatus.failed,
-          paymentMethod: payment_type,
-        },
-      });
-      responseData = payment;
-    } else if (transaction_status == 'pending') {
-      // check if payment status is already completed
-      if (payment.status === 'completed') return payment;
-
-      const updatedPayment = await this.updatePayment({
-        where: { id: order_id },
-        data: {
-          status: PaymentStatus.pending,
-          paymentMethod: payment_type,
-        },
-      });
-      responseData = updatedPayment;
-    } else {
-      this.log.error(
-        `Invalid transaction_status "${transaction_status}" in updateStatusBasedOnMidtransResponse`,
-      );
-    }
-
-    return responseData;
   }
 }
