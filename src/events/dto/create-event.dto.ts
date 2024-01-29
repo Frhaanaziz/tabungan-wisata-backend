@@ -13,11 +13,15 @@ export class CreateEventDto {
 
   @IsString()
   @IsNotEmpty()
-  description: string;
+  include: string;
 
   @IsString()
   @IsNotEmpty()
-  include: string;
+  exclude: string;
+
+  @IsString()
+  @IsNotEmpty()
+  highlight: string;
 
   @IsDateString()
   @IsNotEmpty()
