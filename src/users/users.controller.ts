@@ -16,6 +16,7 @@ import { Admin } from 'src/auth/admin.decorator';
 import { UpdateUserSchoolDto } from './dto/update-user-school.dto';
 import { PaymentsService } from 'src/payments/payments.service';
 import { GetPaginatedDataDto } from 'src/utils/dto/get-paginated-data.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('users')
 export class UsersController {
@@ -45,7 +46,7 @@ export class UsersController {
   @Public()
   @Post('/reset-password')
   async resetPassword(
-    @Body('newPassword') newPassword: string,
+    @Body() { newPassword }: ResetPasswordDto,
     @Query('token') token: string | undefined,
   ) {
     if (!token) throw new UnauthorizedException('Unauthorized');
