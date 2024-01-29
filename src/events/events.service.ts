@@ -17,6 +17,7 @@ export class EventsService {
       where: eventWhereUniqueInput,
       include: {
         images: true,
+        itineraries: true,
       },
     });
     if (!event) throw new NotFoundException('Event not found');
@@ -38,11 +39,11 @@ export class EventsService {
         take,
         cursor,
         where,
+        select,
         orderBy: {
           startDate: 'desc',
           ...orderBy,
         },
-        select,
       });
     }
 
@@ -54,6 +55,7 @@ export class EventsService {
       orderBy,
       include: {
         images: true,
+        itineraries: true,
       },
     });
   }
@@ -63,6 +65,7 @@ export class EventsService {
       data,
       include: {
         images: true,
+        itineraries: true,
       },
     });
   }
@@ -77,6 +80,7 @@ export class EventsService {
       where,
       include: {
         images: true,
+        itineraries: true,
       },
     });
   }
@@ -86,6 +90,7 @@ export class EventsService {
       where,
       include: {
         images: true,
+        itineraries: true,
       },
     });
   }
@@ -110,6 +115,7 @@ export class EventsService {
       } satisfies Prisma.EventWhereInput,
       include: {
         school: true,
+        itineraries: true,
       } satisfies Prisma.EventInclude,
       orderBy: {
         startDate: 'desc',
