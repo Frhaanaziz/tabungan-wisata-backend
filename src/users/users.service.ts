@@ -148,7 +148,10 @@ export class UsersService {
     }
   }
 
-  async resetPassword({ newPassword, userId }: ResetPasswordDto) {
+  async resetPassword({
+    newPassword,
+    userId,
+  }: ResetPasswordDto & { userId: string }) {
     try {
       const hashedPassword = await this.utilsService.hashPassword(newPassword);
       const updatedUser = await this.prisma.user.update({
