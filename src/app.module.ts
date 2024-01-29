@@ -17,6 +17,7 @@ import { FilesModule } from './files/files.module';
 import { MidtransModule } from './midtrans/midtrans.module';
 import { PrismaModule, QueryInfo, loggingMiddleware } from 'nestjs-prisma';
 import { ItinerariesModule } from './itineraries/itineraries.module';
+import { WebhooksModule } from './webhooks/webhooks.module';
 
 @Module({
   imports: [
@@ -42,7 +43,7 @@ import { ItinerariesModule } from './itineraries/itineraries.module';
         middlewares: [
           loggingMiddleware({
             logger: new Logger('Prisma Query'),
-            logLevel: 'debug', // default is `debug`
+            logLevel: 'log', // default is `debug`
             logMessage: (query: QueryInfo) =>
               `${query.model}.${query.action} - ${query.executionTime}ms`,
           }),
@@ -63,6 +64,7 @@ import { ItinerariesModule } from './itineraries/itineraries.module';
     FilesModule,
     MidtransModule,
     ItinerariesModule,
+    WebhooksModule,
   ],
   providers: [
     AppService,
