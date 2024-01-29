@@ -16,6 +16,7 @@ import { VerificationsModule } from './verifications/verifications.module';
 import { FilesModule } from './files/files.module';
 import { MidtransModule } from './midtrans/midtrans.module';
 import { PrismaModule, QueryInfo, loggingMiddleware } from 'nestjs-prisma';
+import { ItinerariesModule } from './itineraries/itineraries.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { PrismaModule, QueryInfo, loggingMiddleware } from 'nestjs-prisma';
     VerificationsModule,
     FilesModule,
     MidtransModule,
+    ItinerariesModule,
   ],
   providers: [
     AppService,
