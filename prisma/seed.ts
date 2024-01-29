@@ -1,8 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 
-const eventDescription: string = `<ul><li><p><strong>DAY 1 ARRIVAL JOGJA (YIA) – BOROBUDUR – MALIOBORO (L)</strong></p><ul><li><p>Tiba di Airport Yogya International Airport, dijemput oleh perwakilan Mitra</p></li><li><p>Makan siang dilokal restaurant</p></li><li><p>Mengunjungi salah satu dari 8 keajaiban dunia, Candi Borobudur</p></li><li><p>Mengunjungi Malioboro untuk belanja aneka produk kerajinan khas Jogja di sepanjang jalan Malioboro</p></li><li><p><em>Check-in&nbsp;</em>Hotel untuk istirahat malam (free program)</p></li></ul><p><strong>DAY 2 Gua Pindul – Hutan Pinus Pengger – Heha Sky View &nbsp;(B,L)</strong></p><ul><li><p>Sarapan pagi di Hotel</p></li><li><p>Mengadakan Gua Pindul Tour, menuju wilayah gunung kapur Wonosari menyusuri Bukit Patuk menikmati keindahan kota Jogja dari ketinggian, menikmati sensasi menyusuri sungai di dalam gua dengan menggunakan ban besar dilengkapi dengan jas pelampung yang aman untuk segala usia, melihat keindahalan dalam gua yang menyajikan stalaktit hasil proses ribuan tahun dan masih tetap berlangsung sampai sekarang.</p></li><li><p>Makan siang dilokal restaurant dengan menu khas daerah Gunung Kidul</p></li><li><p>Menuju Hutan Pinus Pengger</p></li><li><p>Mengunjungi Heha Skyview untuk menikmati temaram senja, keseruan spot selfi dengan latar belakang panorama kota Jogja (Tidak termasuk spot foto)</p></li><li><p>kembali ke hotel, check in dan istirahat malam</p></li></ul><p><strong>DAY 3 FREE PROGRAM – <em>TRANSFER AIRPORT&nbsp;</em>(B)</strong></p><ul><li><p>Makan pagi dihotel</p></li><li><p>menunggu waktu sampai ditransfer ke Airport</p></li></ul></li></ul>`;
-
 const paymentMethods = [
   'credit_card',
   'echannel',
@@ -24,14 +22,6 @@ function generateRandomCode() {
     code += characters.charAt(Math.floor(Math.random() * characters.length));
   }
   return code;
-}
-
-function generateRandomEventInclude() {
-  const word = faker.lorem.words({ min: 3, max: 6 });
-  const list = Array.from({ length: faker.number.int({ min: 3, max: 7 }) })
-    .map(() => `<li>${word}</li>`)
-    .join('');
-  return `<ul>${list}</ul>`;
 }
 
 const prisma = new PrismaClient();
@@ -57,6 +47,14 @@ async function main() {
 
   console.log('Creating events...');
   for (let i = 0; i < 100; i++) {
+    function generateRandomEventInclude() {
+      const word = faker.lorem.words({ min: 3, max: 6 });
+      const list = Array.from({ length: faker.number.int({ min: 3, max: 7 }) })
+        .map(() => `<li>${word}</li>`)
+        .join('');
+      return `<ul>${list}</ul>`;
+    }
+
     const startDate = new Date();
     const endDate = faker.date.between({
       from: startDate,
@@ -66,11 +64,37 @@ async function main() {
       data: {
         name: faker.company.name(),
         include: generateRandomEventInclude(),
-        description: eventDescription,
+        exclude: generateRandomEventInclude(),
         schoolId: faker.helpers.arrayElement(schoolIds),
         cost: faker.number.int({ min: 1000000, max: 5000000 }),
         startDate,
         endDate,
+        highlight: generateRandomEventInclude(),
+        itineraries: {
+          createMany: {
+            data: Array.from({
+              length: faker.number.int({ min: 3, max: 5 }),
+            }).map(() => ({
+              name: faker.location.city(),
+              description: faker.lorem.paragraphs(),
+            })),
+          },
+        },
+        images: {
+          createMany: {
+            data: Array.from({
+              length: faker.number.int({ min: 4, max: 7 }),
+            }).map(() => ({
+              url: faker.image.urlLoremFlickr({
+                category: 'city',
+                width: 1280,
+                height: 720,
+              }),
+              size: faker.number.int({ min: 1_000_000, max: 5_000_000 }),
+              uploadedAt: faker.date.past(),
+            })),
+          },
+        },
       },
     });
   }
