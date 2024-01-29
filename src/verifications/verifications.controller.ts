@@ -4,6 +4,7 @@ import { Public } from 'src/auth/public.decorator';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { UsersService } from 'src/users/users.service';
 import { UtilsService } from 'src/utils/utils.service';
+import { VerifyTokenDto } from './dto/verify-token.dto';
 
 @Controller('verifications')
 export class VerificationsController {
@@ -43,7 +44,7 @@ export class VerificationsController {
 
   @Public()
   @Post('/verify-token')
-  async verifyToken(@Body() { token }: { token: string }) {
+  async verifyToken(@Body() { token }: VerifyTokenDto) {
     return this.utilsService.verifyJwtToken(token);
   }
 }
