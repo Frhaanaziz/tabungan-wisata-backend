@@ -11,6 +11,7 @@ export class MidtransService {
       ...restPayload,
       credit_card: {
         secure: true,
+        save_card: true,
       },
       callbacks: {
         finish: `${baseUrl}/payments/success`,
