@@ -74,20 +74,6 @@ export class UsersService {
     });
   }
 
-  async getUserBalance(userId: string) {
-    const amountSum = await this.prisma.payment.aggregate({
-      _sum: {
-        amount: true,
-      },
-      where: {
-        userId,
-        status: 'completed',
-      },
-    });
-
-    return amountSum._sum.amount ?? 0;
-  }
-
   async getUsersPaginated({
     page,
     take,
