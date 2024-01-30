@@ -1,4 +1,4 @@
-import { Body, Controller, Logger, Post } from '@nestjs/common';
+import { Body, Controller, Headers, Logger, Post } from '@nestjs/common';
 import { WebhooksService } from './webhooks.service';
 import { Public } from 'src/auth/public.decorator';
 import { MidtransNotificationDto } from './dto/midtrans-notification.dto';
@@ -14,7 +14,10 @@ export class WebhooksController {
 
   @Public()
   @Post('midtrans-notification')
-  async midtransPaymentNotification(@Body() body: MidtransNotificationDto) {
+  async midtransPaymentNotification(
+    @Headers('Iris-Signature') irisSignature: string,
+    @Body() body: MidtransNotificationDto,
+  ) {
     this.log.verbose('Midtrans payment notification received');
     const { order_id } = body;
 
