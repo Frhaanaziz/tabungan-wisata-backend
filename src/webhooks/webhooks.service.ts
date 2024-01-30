@@ -4,10 +4,14 @@ import { Injectable } from '@nestjs/common';
 import { createHash } from 'crypto';
 import { MidtransNotificationDto } from './dto/midtrans-notification.dto';
 import { PaymentsService } from 'src/payments/payments.service';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class WebhooksService {
-  constructor(private readonly paymentsService: PaymentsService) {}
+  constructor(
+    private readonly paymentsService: PaymentsService,
+    private readonly usersService: UsersService,
+  ) {}
 
   private readonly log = new Logger(WebhooksService.name);
 
@@ -48,6 +52,12 @@ export class WebhooksService {
           },
         });
         responseData = payment;
+
+        // update user balance if payment status is completed
+        await this.usersService.updateUser({
+          where: { id: payment.userId },
+          data: { balance: { increment: payment.amount } },
+        });
       }
     } else if (transaction_status == 'settlement') {
       const payment = await this.paymentsService.updatePayment({
@@ -58,6 +68,12 @@ export class WebhooksService {
         },
       });
       responseData = payment;
+
+      // update user balance if payment status is completed
+      await this.usersService.updateUser({
+        where: { id: payment.userId },
+        data: { balance: { increment: payment.amount } },
+      });
     } else if (
       transaction_status == 'cancel' ||
       transaction_status == 'deny' ||
