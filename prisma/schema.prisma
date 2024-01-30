@@ -17,7 +17,9 @@ model User {
   image         String?
   emailVerified Boolean             @default(false)
   schoolId      String?
+  balance       Int                 @default(0)
   payments      Payment[]
+  Withdrawal    Withdrawal[]
   registrations EventRegistration[]
   verification  Verification[]
   accounts      Account[]
@@ -76,6 +78,17 @@ model Payment {
   paymentMethod String?
   status        PaymentStatus @default(pending)
   user          User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId], name: "userId")
+}
+
+model Withdrawal {
+  id        String   @id @default(cuid())
+  amount    Int
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId], name: "userId")
 }
