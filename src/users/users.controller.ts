@@ -78,11 +78,6 @@ export class UsersController {
     });
   }
 
-  @Get(':id/balance')
-  getUserBalance(@Param('id') id: string) {
-    return this.usersService.getUserBalance(id);
-  }
-
   @Get(':id/payments')
   getUserPayments(
     @Param('id') id: string,
