@@ -25,10 +25,10 @@ export class MidtransNotificationDto {
 
   // Payout notification
   @IsOptional()
-  reference_no: string;
+  amount: string;
 
   @IsOptional()
-  amount: string;
+  reference_no: string;
 
   @IsOptional()
   status: string;
