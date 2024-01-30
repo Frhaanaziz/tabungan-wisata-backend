@@ -18,6 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const {
       user: { id, role },
     } = payload;
+
     const user = await this.userService.getUser({
       where: {
         id,
