@@ -18,6 +18,7 @@ import { MidtransModule } from './midtrans/midtrans.module';
 import { PrismaModule, QueryInfo, loggingMiddleware } from 'nestjs-prisma';
 import { ItinerariesModule } from './itineraries/itineraries.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
+import { WithdrawalsModule } from './withdrawals/withdrawals.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { WebhooksModule } from './webhooks/webhooks.module';
     MidtransModule,
     ItinerariesModule,
     WebhooksModule,
+    WithdrawalsModule,
   ],
   providers: [
     AppService,
