@@ -25,7 +25,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         role,
       },
     });
-
     if (!user) throw new UnauthorizedException();
 
     return user;
