@@ -7,5 +7,6 @@ import { UtilsModule } from 'src/utils/utils.module';
   imports: [UtilsModule],
   controllers: [EventsController],
   providers: [EventsService],
+  exports: [EventsService],
 })
 export class EventsModule {}
