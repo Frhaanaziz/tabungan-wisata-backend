@@ -18,8 +18,16 @@ export class UsersService {
   async getUser(params: {
     where: Prisma.UserWhereUniqueInput;
     include?: Prisma.UserInclude;
+    select?: Prisma.UserSelect;
   }): Promise<User | null> {
-    const { where, include } = params;
+    const { where, include, select } = params;
+    if (select) {
+      return this.prisma.user.findUnique({
+        where,
+        select,
+      });
+    }
+
     return this.prisma.user.findUnique({
       where,
       include: {
@@ -52,6 +60,19 @@ export class UsersService {
     });
   }
 
+  async getTotalUsersBalance({ schoolId }: { schoolId?: string }) {
+    const { _sum } = await this.prisma.user.aggregate({
+      _sum: {
+        balance: true,
+      },
+      where: {
+        schoolId,
+      },
+    });
+
+    return _sum.balance || 0;
+  }
+
   async createUser(data: Prisma.UserCreateInput): Promise<User> {
     return this.prisma.user.create({
       data,
@@ -71,6 +92,17 @@ export class UsersService {
       data,
       where,
       include,
+    });
+  }
+
+  async updateUsers(params: {
+    where: Prisma.UserWhereInput;
+    data: Prisma.UserUpdateInput;
+  }): Promise<Prisma.BatchPayload> {
+    const { where, data } = params;
+    return this.prisma.user.updateMany({
+      data,
+      where,
     });
   }
 
