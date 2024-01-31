@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -70,12 +71,35 @@ export class UsersController {
     return this.usersService.getTotalUsers();
   }
 
+  @Admin()
+  @Get('/total-balance')
+  getTotalUsersBalance(@Query('schoolId') schoolId: string | undefined) {
+    return this.usersService.getTotalUsersBalance({ schoolId });
+  }
+
   @Get(':id')
-  getUserById(@Param('id') id: string, @Query('payments') payments: boolean) {
-    return this.usersService.getUser({
+  async getUserById(
+    @Param('id') id: string,
+    @Query('payments') payments: boolean,
+  ) {
+    const user = await this.usersService.getUser({
       where: { id },
       include: { payments: Boolean(payments) },
     });
+    if (!user) throw new NotFoundException('User not found');
+
+    return user;
+  }
+
+  @Get(':id/balance')
+  async getUserBalance(@Param('id') id: string) {
+    const user = await this.usersService.getUser({
+      where: { id },
+      select: { balance: true },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    return user.balance;
   }
 
   @Get(':id/payments')
