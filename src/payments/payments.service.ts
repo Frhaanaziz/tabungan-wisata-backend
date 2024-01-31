@@ -10,6 +10,7 @@ import { PrismaService } from 'nestjs-prisma';
 import { UsersService } from 'src/users/users.service';
 import { UtilsService } from 'src/utils/utils.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
+import { EventsService } from 'src/events/events.service';
 
 @Injectable()
 export class PaymentsService {
@@ -19,6 +20,7 @@ export class PaymentsService {
     private readonly utilsService: UtilsService,
     private readonly usersService: UsersService,
     private readonly midtransService: MidtransService,
+    private readonly eventsService: EventsService,
   ) {}
 
   async getPayment(
@@ -136,6 +138,12 @@ export class PaymentsService {
       },
     });
 
+    const events = await this.eventsService.getEvents({
+      where: {
+        schoolId: user.schoolId,
+      },
+    });
+
     try {
       return await this.midtransService.createTransaction({
         baseUrl,
@@ -149,6 +157,13 @@ export class PaymentsService {
           last_name,
           email: user.email,
         },
+        item_details: events.map((event) => ({
+          id: event.id,
+          price: event.cost,
+          quantity: 1,
+          name: event.name,
+          category: 'Event',
+        })),
         user_id: userId,
       });
     } catch (error) {
