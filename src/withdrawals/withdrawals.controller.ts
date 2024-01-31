@@ -3,6 +3,7 @@ import { WithdrawalsService } from './withdrawals.service';
 import { CreateWithdrawalDto } from './dto/create-withdrawal.dto';
 import { Admin } from 'src/auth/admin.decorator';
 import { GetPaginatedDataDto } from 'src/utils/dto/get-paginated-data.dto';
+import { GetWithdrawalsTotalAmountDto } from './dto/get-total-amount.dto';
 
 @Controller('withdrawals')
 export class WithdrawalsController {
@@ -10,20 +11,15 @@ export class WithdrawalsController {
 
   @Admin()
   @Post()
-  create(@Body() { amount, userId }: CreateWithdrawalDto) {
-    return this.withdrawalsService.createWithdrawal({
-      amount,
-      user: {
-        connect: {
-          id: userId,
-        },
-      },
-    });
+  create(@Body() createWithdrawalDto: CreateWithdrawalDto) {
+    return this.withdrawalsService.createWithdrawalWithAction(
+      createWithdrawalDto,
+    );
   }
 
   @Admin()
   @Get()
-  getAllPayments(
+  getAll(
     @Query()
     { page, take = '10', search = '' }: GetPaginatedDataDto,
   ) {
@@ -36,5 +32,11 @@ export class WithdrawalsController {
     }
 
     return this.withdrawalsService.getWithdrawals({});
+  }
+
+  @Admin()
+  @Get('total-amount')
+  getTotalWithdrawalAmount(@Body() body: GetWithdrawalsTotalAmountDto) {
+    return this.withdrawalsService.calculateTotalWithdrawalAmount(body);
   }
 }
