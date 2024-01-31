@@ -2,12 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { Prisma, Withdrawal } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 import { UtilsService } from 'src/utils/utils.service';
+import { CreateWithdrawalDto } from './dto/create-withdrawal.dto';
+import { UsersService } from 'src/users/users.service';
+import { SchoolsService } from 'src/schools/schools.service';
 
 @Injectable()
 export class WithdrawalsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly utilsService: UtilsService,
+    private readonly usersService: UsersService,
+    private readonly schoolsService: SchoolsService,
   ) {}
 
   async getWithdrawal(
@@ -37,6 +42,7 @@ export class WithdrawalsService {
       },
       include: {
         user: true,
+        school: true,
       },
     });
   }
@@ -48,6 +54,38 @@ export class WithdrawalsService {
       data,
       include: {
         user: true,
+        school: true,
+      },
+    });
+  }
+
+  async createWithdrawalWithAction({ schoolId, userId }: CreateWithdrawalDto) {
+    const balance = await this.usersService.getTotalUsersBalance({
+      schoolId,
+    });
+
+    await this.usersService.updateUsers({
+      data: {
+        balance: {
+          set: 0,
+        },
+      },
+      where: {
+        schoolId,
+      },
+    });
+
+    return this.createWithdrawal({
+      amount: balance,
+      user: {
+        connect: {
+          id: userId,
+        },
+      },
+      school: {
+        connect: {
+          id: schoolId,
+        },
       },
     });
   }
@@ -62,6 +100,7 @@ export class WithdrawalsService {
       where,
       include: {
         user: true,
+        school: true,
       },
     });
   }
@@ -73,6 +112,7 @@ export class WithdrawalsService {
       where,
       include: {
         user: true,
+        school: true,
       },
     });
   }
@@ -99,13 +139,31 @@ export class WithdrawalsService {
             contains: search,
           },
         },
+        school: {
+          name: {
+            contains: search,
+          },
+        },
       } satisfies Prisma.WithdrawalWhereInput,
       include: {
         user: true,
+        school: true,
       } satisfies Prisma.WithdrawalInclude,
       orderBy: {
         createdAt: 'desc',
       } satisfies Prisma.WithdrawalOrderByWithRelationInput,
     });
+  }
+
+  async calculateTotalWithdrawalAmount({
+    schoolId,
+  }: {
+    schoolId: string;
+  }): Promise<number> {
+    const balance = await this.usersService.getTotalUsersBalance({
+      schoolId,
+    });
+
+    return balance;
   }
 }
