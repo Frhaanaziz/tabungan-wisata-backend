@@ -122,7 +122,9 @@ export class UtilsService {
       },
     }); // get last month count
 
-    const growth = ((currentCount - lastMonthCount) / lastMonthCount) * 100;
+    let growth = 0;
+    if (lastMonthCount !== 0)
+      growth = ((currentCount - lastMonthCount) / lastMonthCount) * 100;
 
     return growth || 0;
   }
