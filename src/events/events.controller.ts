@@ -14,10 +14,14 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { Admin } from 'src/auth/admin.decorator';
 import { Public } from 'src/auth/public.decorator';
 import { GetPaginatedDataDto } from 'src/utils/dto/get-paginated-data.dto';
+import { UtilsService } from 'src/utils/utils.service';
 
 @Controller('events')
 export class EventsController {
-  constructor(private readonly eventsService: EventsService) {}
+  constructor(
+    private readonly eventsService: EventsService,
+    private readonly utilsService: UtilsService,
+  ) {}
 
   @Admin()
   @Post()
@@ -43,6 +47,22 @@ export class EventsController {
     }
 
     return this.eventsService.getEvents({});
+  }
+  @Admin()
+  @Get('count-new-events')
+  async getNewEvents(@Query() { days = '30' }: { days?: string }) {
+    return this.utilsService.getNewItemsLastDays({
+      days: parseInt(days),
+      model: 'Event',
+    });
+  }
+
+  @Admin()
+  @Get('/growth-percentage')
+  getPercentageFromLastMonth() {
+    return this.utilsService.getGrowthPercentageFromLastMonth({
+      model: 'Event',
+    });
   }
 
   @Public()
