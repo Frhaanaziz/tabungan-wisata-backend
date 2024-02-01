@@ -4,7 +4,6 @@ import { PrismaService } from 'nestjs-prisma';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UtilsService } from 'src/utils/utils.service';
 import { VerificationsService } from 'src/verifications/verifications.service';
-import { SchoolsService } from 'src/schools/schools.service';
 
 @Injectable()
 export class UsersService {
@@ -12,7 +11,6 @@ export class UsersService {
     private prisma: PrismaService,
     private utilsService: UtilsService,
     private verificationsService: VerificationsService,
-    private schoolsService: SchoolsService,
   ) {}
 
   async getUser(params: {
@@ -209,22 +207,6 @@ export class UsersService {
     });
 
     return updatedUser;
-  }
-
-  async getNewUserLastDays({ days }: { days: number }) {
-    // dapatkan tanggal beberapa jam yang lalu berdasarkan input hours
-    const startDate = new Date(new Date().setDate(new Date().getDate() - days));
-
-    // hitung jumlah user pada rentang tanggal
-    const usersInRange = await this.prisma.user.count({
-      where: {
-        createdAt: {
-          gte: startDate,
-        },
-      },
-    });
-
-    return usersInRange;
   }
 
   async getUsersCount() {
