@@ -88,7 +88,8 @@ export class UsersController {
   @Admin()
   @Get('/growth-count')
   getNewUsersCountLastDays(@Query() { days = '30' }: { days?: string }) {
-    return this.usersService.getNewUserLastDays({
+    return this.utilsService.getNewItemsLastDays({
+      model: 'User',
       days: parseInt(days),
     });
   }
