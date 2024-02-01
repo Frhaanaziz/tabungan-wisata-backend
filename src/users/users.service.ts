@@ -211,26 +211,23 @@ export class UsersService {
     return updatedUser;
   }
 
-  async getUserGrowthPercentage() {
-    const currentMonth = new Date().getMonth(); // get current month
-    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1; // get last month
+  async getNewUserLastDays({ days }: { days: number }) {
+    // dapatkan tanggal beberapa jam yang lalu berdasarkan input hours
+    const startDate = new Date(new Date().setDate(new Date().getDate() - days));
 
-    const currentUsers = await this.prisma.user.count(); // get current user count
-    const lastMonthUsers = await this.prisma.user.count({
+    // hitung jumlah user pada rentang tanggal
+    const usersInRange = await this.prisma.user.count({
       where: {
         createdAt: {
-          gte: new Date(new Date().getFullYear(), lastMonth, 1),
-          lt: new Date(new Date().getFullYear(), lastMonth + 1, 1),
+          gte: startDate,
         },
       },
-    }); // get last month user count
+    });
 
-    const growth = ((currentUsers - lastMonthUsers) / lastMonthUsers) * 100;
-
-    return growth;
+    return usersInRange;
   }
 
-  async getTotalUsers() {
+  async getUsersCount() {
     return this.prisma.user.count();
   }
 }
