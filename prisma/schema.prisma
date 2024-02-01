@@ -57,6 +57,8 @@ model Event {
   images        File[]
   registrations EventRegistration[]
   school        School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
 
   @@index([schoolId], name: "schoolId")
 }
@@ -74,11 +76,12 @@ model Itinerary {
 model Payment {
   id            String        @id @default(cuid())
   amount        Int
-  date          DateTime      @default(now())
   userId        String
   paymentMethod String?
   status        PaymentStatus @default(pending)
-  user          User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade) // WARNING: CASCADE DELETE
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   @@index([userId], name: "userId")
 }
@@ -88,12 +91,13 @@ model Withdrawal {
   amount    Int
   userId    String
   schoolId  String
-  school    School   @relation(fields: [schoolId], references: [id], onDelete: Restrict)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade) // WARNING: CASCADE DELETE
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade) // WARNING: CASCADE DELETE
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId], name: "userId")
+  @@index([schoolId], name: "schoolId")
 }
 
 model EventRegistration {
@@ -132,7 +136,7 @@ model File {
   thumbnailUrl String?
   size         Int
   uploadedAt   DateTime
-  event        Event?   @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  event        Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   eventId      String?
 
   @@index([eventId], name: "eventId")
