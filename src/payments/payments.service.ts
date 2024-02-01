@@ -115,22 +115,6 @@ export class PaymentsService {
     });
   }
 
-  // async getPaymentsByMonth() {
-  //   const data = await this.prisma.payment.groupBy({
-  //     by: [Prisma.sql`DATE_FORMAT(createdAt, '%b')`],
-  //     _sum: {
-  //       amount: true,
-  //     },
-  //   });
-
-  //   const result = data.map((d) => {
-  //     return {
-  //       name: d.createdAt,
-  //       total: d._sum.amount,
-  //     };
-  //   });
-  // }
-
   async createPayment(data: Prisma.PaymentCreateInput): Promise<Payment> {
     return this.prisma.payment.create({
       data,
