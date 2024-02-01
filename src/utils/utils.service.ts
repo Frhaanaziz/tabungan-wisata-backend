@@ -76,6 +76,57 @@ export class UtilsService {
     };
   }
 
+  async getNewItemsLastDays({
+    days,
+    model,
+    where,
+  }: {
+    days: number;
+    model: Prisma.ModelName;
+    where?: object;
+  }) {
+    // Get the date of a few days ago based on the input days
+    const startDate = new Date(new Date().setDate(new Date().getDate() - days));
+
+    // Count the number of items within the date range
+    const itemsInRange = await this.prisma[model].count({
+      where: {
+        createdAt: {
+          gte: startDate,
+        },
+        ...where,
+      },
+    });
+
+    return itemsInRange;
+  }
+
+  async getGrowthPercentageFromLastMonth({
+    model,
+    where,
+  }: {
+    model: Prisma.ModelName;
+    where?: object;
+  }) {
+    const currentMonth = new Date().getMonth(); // get current month
+    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1; // get last month
+
+    const currentCount = await this.prisma[model].count(); // get current count
+    const lastMonthCount = await this.prisma[model].count({
+      where: {
+        createdAt: {
+          gte: new Date(new Date().getFullYear(), lastMonth, 1),
+          lt: new Date(new Date().getFullYear(), lastMonth + 1, 1),
+        },
+        ...where,
+      },
+    }); // get last month count
+
+    const growth = ((currentCount - lastMonthCount) / lastMonthCount) * 100;
+
+    return growth || 0;
+  }
+
   verifyJwtToken(token: string) {
     try {
       return this.jwtService.verify(token, {
