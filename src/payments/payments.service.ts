@@ -45,7 +45,7 @@ export class PaymentsService {
       cursor,
       where,
       orderBy: {
-        date: 'desc',
+        createdAt: 'desc',
         ...orderBy,
       },
       include: {
@@ -54,27 +54,33 @@ export class PaymentsService {
     });
   }
 
-  async createPayment(data: Prisma.PaymentCreateInput): Promise<Payment> {
-    return this.prisma.payment.create({
-      data,
-    });
-  }
+  async getCompletedPayments(params: {
+    take?: number;
+    days?: number;
+  }): Promise<Payment[]> {
+    const { take, days } = params;
 
-  async updatePayment(params: {
-    where: Prisma.PaymentWhereUniqueInput;
-    data: Prisma.PaymentUpdateInput;
-  }): Promise<Payment> {
-    const { where, data } = params;
-    return this.prisma.payment.update({
-      data,
-      where,
-    });
-  }
+    const startDate = new Date(
+      new Date().getTime() - 1000 * 60 * 60 * 24 * days,
+    );
 
-  async deletePayment(where: Prisma.PaymentWhereUniqueInput): Promise<Payment> {
-    return this.prisma.payment.delete({
-      where,
+    const payments = await this.prisma.payment.findMany({
+      take,
+      where: {
+        status: 'completed',
+        createdAt: {
+          gt: days ? startDate : undefined,
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        user: true,
+      },
     });
+
+    return payments || [];
   }
 
   async getPaymentsPaginated({
@@ -104,8 +110,30 @@ export class PaymentsService {
         user: true,
       } satisfies Prisma.PaymentInclude,
       orderBy: {
-        date: 'desc',
+        createdAt: 'desc',
       } satisfies Prisma.PaymentOrderByWithRelationInput,
+    });
+  }
+
+  // async getPaymentsByMonth() {
+  //   const data = await this.prisma.payment.groupBy({
+  //     by: [Prisma.sql`DATE_FORMAT(createdAt, '%b')`],
+  //     _sum: {
+  //       amount: true,
+  //     },
+  //   });
+
+  //   const result = data.map((d) => {
+  //     return {
+  //       name: d.createdAt,
+  //       total: d._sum.amount,
+  //     };
+  //   });
+  // }
+
+  async createPayment(data: Prisma.PaymentCreateInput): Promise<Payment> {
+    return this.prisma.payment.create({
+      data,
     });
   }
 
@@ -171,5 +199,22 @@ export class PaymentsService {
       this.log.error('createPaymentTransaction', error);
       throw new InternalServerErrorException('Midtrans error');
     }
+  }
+
+  async updatePayment(params: {
+    where: Prisma.PaymentWhereUniqueInput;
+    data: Prisma.PaymentUpdateInput;
+  }): Promise<Payment> {
+    const { where, data } = params;
+    return this.prisma.payment.update({
+      data,
+      where,
+    });
+  }
+
+  async deletePayment(where: Prisma.PaymentWhereUniqueInput): Promise<Payment> {
+    return this.prisma.payment.delete({
+      where,
+    });
   }
 }
