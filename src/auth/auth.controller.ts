@@ -25,7 +25,7 @@ export class AuthController {
   signUp(
     @Body() authCredentialsDto: AuthCredentialsDto,
     @Query('baseUrl') baseUrl: string | undefined,
-  ) {
+  ): Promise<void> {
     if (!baseUrl)
       throw new BadRequestException('baseUrl (queryParam) is required');
     return this.authService.signUp({ ...authCredentialsDto, baseUrl });
