@@ -62,13 +62,35 @@ export class UsersController {
   @Admin()
   @Get('/growth-percentage')
   getPercentageFromLastMonth() {
-    return this.usersService.getUserGrowthPercentage();
+    return this.utilsService.getGrowthPercentageFromLastMonth({
+      model: 'User',
+    });
   }
 
   @Admin()
-  @Get('/total')
+  @Get('/count-new-users')
+  getNewUsers(
+    @Query()
+    { days = '30' }: { days?: string },
+  ) {
+    return this.utilsService.getNewItemsLastDays({
+      days: parseInt(days),
+      model: 'User',
+    });
+  }
+
+  @Admin()
+  @Get('/total-users')
   getTotalUsers() {
-    return this.usersService.getTotalUsers();
+    return this.usersService.getUsersCount();
+  }
+
+  @Admin()
+  @Get('/growth-count')
+  getNewUsersCountLastDays(@Query() { days = '30' }: { days?: string }) {
+    return this.usersService.getNewUserLastDays({
+      days: parseInt(days),
+    });
   }
 
   @Admin()
