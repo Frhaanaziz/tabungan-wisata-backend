@@ -114,7 +114,7 @@ async function main() {
     const email = faker.internet.email({
       firstName,
       lastName,
-      allowSpecialCharacters: true,
+      allowSpecialCharacters: false,
       provider: 'gmail',
     });
 
@@ -127,12 +127,21 @@ async function main() {
           createMany: {
             data: Array.from({
               length: faker.number.int({ min: 10, max: 30 }),
-            }).map(() => ({
-              amount: faker.number.int({ min: 10000, max: 2000000 }),
-              date: faker.date.past(),
-              paymentMethod: faker.helpers.arrayElement(paymentMethods),
-              status: faker.helpers.arrayElement(paymentStatus),
-            })),
+            }).map(() => {
+              const createdAt = faker.date.past();
+              const updatedAt = faker.date.between({
+                from: createdAt,
+                to: new Date(),
+              });
+
+              return {
+                amount: faker.number.int({ min: 10000, max: 2000000 }),
+                paymentMethod: faker.helpers.arrayElement(paymentMethods),
+                status: faker.helpers.arrayElement(paymentStatus),
+                createdAt,
+                updatedAt,
+              };
+            }),
           },
         },
         createdAt,
