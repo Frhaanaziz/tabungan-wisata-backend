@@ -9,58 +9,53 @@ datasource db {
 }
 
 model User {
-  id            String              @id @default(cuid())
+  id            String         @id @default(cuid())
   name          String
-  email         String              @unique
+  email         String         @unique
   password      String?
-  role          String              @default("student")
+  role          String         @default("student")
   image         String?
-  emailVerified Boolean             @default(false)
+  emailVerified Boolean        @default(false)
   schoolId      String?
-  balance       Int                 @default(0)
+  balance       Int            @default(0)
   payments      Payment[]
   Withdrawal    Withdrawal[]
-  registrations EventRegistration[]
   verification  Verification[]
   accounts      Account[]
-  school        School?             @relation(fields: [schoolId], references: [id], onDelete: SetNull)
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
+  school        School?        @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   @@index([schoolId], name: "schoolId")
 }
 
 model School {
-  id          String       @id @default(cuid())
-  code        String       @unique
-  name        String
-  address     String
-  contact     String
-  users       User[]
-  events      Event[]
-  withdrawals Withdrawal[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id                String              @id @default(cuid())
+  code              String              @unique
+  name              String
+  address           String
+  contact           String
+  users             User[]
+  withdrawals       Withdrawal[]
+  eventRegistration EventRegistration[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
 }
 
 model Event {
-  id            String              @id @default(cuid())
-  name          String
-  highlight     String              @db.Text
-  itineraries   Itinerary[]
-  include       String              @db.Text
-  exclude       String              @db.Text
-  startDate     DateTime
-  endDate       DateTime
-  schoolId      String
-  cost          Float
-  images        File[]
-  registrations EventRegistration[]
-  school        School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-
-  @@index([schoolId], name: "schoolId")
+  id                String              @id @default(cuid())
+  name              String
+  highlight         String              @db.Text
+  include           String              @db.Text
+  exclude           String              @db.Text
+  startDate         DateTime
+  endDate           DateTime
+  cost              Int
+  images            File[]
+  itineraries       Itinerary[]
+  eventRegistration EventRegistration[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
 }
 
 model Itinerary {
@@ -101,14 +96,16 @@ model Withdrawal {
 }
 
 model EventRegistration {
-  id      String @id @default(cuid())
-  eventId String
-  userId  String
-  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  cost      Int
+  eventId   String
+  schoolId  String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 
   @@index([eventId], name: "eventId")
-  @@index([userId], name: "userId")
+  @@index([schoolId], name: "schoolId")
 }
 
 model Account {
