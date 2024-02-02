@@ -34,8 +34,4 @@ export class CreateEventDto {
   @IsNumber()
   @Min(0)
   cost: number;
-
-  @IsString()
-  @IsNotEmpty()
-  schoolId: string;
 }
