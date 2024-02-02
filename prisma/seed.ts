@@ -65,7 +65,6 @@ async function main() {
         name: faker.company.name(),
         include: generateRandomEventInclude(),
         exclude: generateRandomEventInclude(),
-        schoolId: faker.helpers.arrayElement(schoolIds),
         cost: faker.number.int({ min: 1000000, max: 5000000 }),
         startDate,
         endDate,
