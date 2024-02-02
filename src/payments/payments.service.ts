@@ -150,12 +150,6 @@ export class PaymentsService {
       },
     });
 
-    const events = await this.eventsService.getEvents({
-      where: {
-        schoolId: user.schoolId,
-      },
-    });
-
     try {
       return await this.midtransService.createTransaction({
         baseUrl,
@@ -169,13 +163,6 @@ export class PaymentsService {
           last_name,
           email: user.email,
         },
-        item_details: events.map((event) => ({
-          id: event.id,
-          price: event.cost,
-          quantity: 1,
-          name: event.name,
-          category: 'Event',
-        })),
         user_id: userId,
       });
     } catch (error) {
