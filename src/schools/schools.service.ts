@@ -18,7 +18,7 @@ export class SchoolsService {
       where: schoolWhereUniqueInput,
       include: {
         _count: {
-          select: { events: true, users: true },
+          select: { users: true },
         },
       },
     });
@@ -43,7 +43,7 @@ export class SchoolsService {
       },
       include: {
         _count: {
-          select: { events: true, users: true },
+          select: { users: true },
         },
       },
     });
@@ -100,7 +100,7 @@ export class SchoolsService {
       } satisfies Prisma.SchoolWhereInput,
       include: {
         _count: {
-          select: { events: true, users: true },
+          select: { users: true },
         },
       } satisfies Prisma.SchoolInclude,
       orderBy: {
