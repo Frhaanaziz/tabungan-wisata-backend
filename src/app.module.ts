@@ -19,6 +19,7 @@ import { PrismaModule, QueryInfo, loggingMiddleware } from 'nestjs-prisma';
 import { ItinerariesModule } from './itineraries/itineraries.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { WithdrawalsModule } from './withdrawals/withdrawals.module';
+import { EventRegistrationsModule } from './event-registrations/event-registrations.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { WithdrawalsModule } from './withdrawals/withdrawals.module';
     ItinerariesModule,
     WebhooksModule,
     WithdrawalsModule,
+    EventRegistrationsModule,
   ],
   providers: [
     AppService,
