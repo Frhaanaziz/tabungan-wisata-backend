@@ -26,11 +26,7 @@ export class EventsController {
   @Admin()
   @Post()
   create(@Body() createEventDto: CreateEventDto) {
-    const { schoolId, ...restEventData } = createEventDto;
-    return this.eventsService.createEvent({
-      ...restEventData,
-      school: { connect: { id: schoolId } },
-    });
+    return this.eventsService.createEvent(createEventDto);
   }
 
   @Get()
