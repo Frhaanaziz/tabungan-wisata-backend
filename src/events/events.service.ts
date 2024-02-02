@@ -114,7 +114,6 @@ export class EventsService {
         },
       } satisfies Prisma.EventWhereInput,
       include: {
-        school: true,
         itineraries: true,
       } satisfies Prisma.EventInclude,
       orderBy: {
