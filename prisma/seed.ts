@@ -48,7 +48,7 @@ async function main() {
   console.log('Creating events...');
   for (let i = 0; i < 100; i++) {
     function generateRandomEventInclude() {
-      const word = faker.lorem.words({ min: 3, max: 6 });
+      const word = faker.lorem.words({ min: 5, max: 10 });
       const list = Array.from({ length: faker.number.int({ min: 3, max: 7 }) })
         .map(() => `<li>${word}</li>`)
         .join('');
