@@ -3,7 +3,6 @@ import {
   IsNumber,
   IsString,
   IsEnum,
-  IsDateString,
   IsOptional,
 } from 'class-validator';
 
@@ -17,10 +16,6 @@ export class CreatePaymentDto {
   @IsNotEmpty()
   @IsNumber()
   amount: number;
-
-  @IsNotEmpty()
-  @IsDateString()
-  date: Date;
 
   @IsNotEmpty()
   @IsString()
