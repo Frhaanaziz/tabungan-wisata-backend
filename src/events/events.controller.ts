@@ -29,6 +29,7 @@ export class EventsController {
     return this.eventsService.createEvent(createEventDto);
   }
 
+  @Public()
   @Get()
   getAllEvents(
     @Query()
