@@ -7,7 +7,13 @@
 //     school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 //     createdAt DateTime @default(now())
 
-import { IsInt, IsNotEmpty, IsString, Min } from 'class-validator';
+import {
+  IsDateString,
+  IsInt,
+  IsNotEmpty,
+  IsString,
+  Min,
+} from 'class-validator';
 
 //     @@index([eventId], name: "eventId")
 //     @@index([schoolId], name: "schoolId")
@@ -25,4 +31,10 @@ export class CreateEventRegistrationDto {
   @IsString()
   @IsNotEmpty()
   schoolId: string;
+
+  @IsDateString()
+  startDate: string;
+
+  @IsDateString()
+  endDate: string;
 }
