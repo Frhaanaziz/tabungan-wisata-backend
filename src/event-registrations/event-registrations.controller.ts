@@ -31,9 +31,9 @@ export class EventRegistrationsController {
 
   @Admin()
   @Post()
-  create(@Body() { cost, eventId, schoolId }: CreateEventRegistrationDto) {
+  create(@Body() { eventId, schoolId, ...rest }: CreateEventRegistrationDto) {
     return this.eventRegistrationsService.create({
-      cost,
+      ...rest,
       event: { connect: { id: eventId } },
       school: { connect: { id: schoolId } },
     });
