@@ -46,6 +46,7 @@ async function main() {
   }
 
   console.log('Creating events...');
+  const eventIds = [];
   for (let i = 0; i < 100; i++) {
     function generateRandomEventInclude() {
       const word = faker.lorem.words({ min: 5, max: 10 });
@@ -55,20 +56,14 @@ async function main() {
       return `<ul>${list}</ul>`;
     }
 
-    const startDate = new Date();
-    const endDate = faker.date.between({
-      from: startDate,
-      to: faker.date.future(),
-    });
-    await prisma.event.create({
+    const event = await prisma.event.create({
       data: {
         name: faker.company.name(),
         include: generateRandomEventInclude(),
         exclude: generateRandomEventInclude(),
         cost: faker.number.int({ min: 1000000, max: 5000000 }),
-        startDate,
-        endDate,
         highlight: generateRandomEventInclude(),
+        duration: faker.number.int({ min: 2, max: 7 }),
         itineraries: {
           createMany: {
             data: Array.from({
@@ -96,7 +91,28 @@ async function main() {
         },
       },
     });
+    eventIds.push(event.id);
   }
+
+  console.log('Creating event registrations...');
+  schoolIds.forEach(async (schoolId) => {
+    const startDate = new Date();
+    const endDate = faker.date.between({
+      from: startDate,
+      to: faker.date.future(),
+    });
+    await prisma.eventRegistration.createMany({
+      data: Array.from({ length: faker.number.int({ min: 1, max: 2 }) }).map(
+        () => ({
+          cost: faker.number.int({ min: 1_000_000, max: 3000000 }),
+          startDate,
+          endDate,
+          schoolId,
+          eventId: faker.helpers.arrayElement(eventIds),
+        }),
+      ),
+    });
+  });
 
   console.log('Creating users...');
   for (let i = 0; i < faker.number.int({ min: 100, max: 200 }); i++) {
