@@ -48,9 +48,8 @@ model Event {
   highlight         String              @db.Text
   include           String              @db.Text
   exclude           String              @db.Text
-  startDate         DateTime
-  endDate           DateTime
   cost              Int
+  duration          Int
   images            File[]
   itineraries       Itinerary[]
   eventRegistration EventRegistration[]
@@ -98,6 +97,8 @@ model Withdrawal {
 model EventRegistration {
   id        String   @id @default(cuid())
   cost      Int
+  startDate DateTime
+  endDate   DateTime
   eventId   String
   schoolId  String
   event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
