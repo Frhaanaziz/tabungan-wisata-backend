@@ -19,17 +19,13 @@ export class CreateEventDto {
   @IsNotEmpty()
   exclude: string;
 
+  @IsNumber()
+  @Min(1)
+  duration: number;
+
   @IsString()
   @IsNotEmpty()
   highlight: string;
-
-  @IsDateString()
-  @IsNotEmpty()
-  startDate: Date;
-
-  @IsDateString()
-  @IsNotEmpty()
-  endDate: Date;
 
   @IsNumber()
   @Min(0)
