@@ -41,7 +41,7 @@ export class EventsService {
         where,
         select,
         orderBy: {
-          startDate: 'desc',
+          createdAt: 'desc',
           ...orderBy,
         },
       });
@@ -117,7 +117,7 @@ export class EventsService {
         itineraries: true,
       } satisfies Prisma.EventInclude,
       orderBy: {
-        startDate: 'desc',
+        createdAt: 'desc',
       } satisfies Prisma.EventOrderByWithRelationInput,
     });
   }
