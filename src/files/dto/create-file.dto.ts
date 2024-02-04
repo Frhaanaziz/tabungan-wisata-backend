@@ -22,7 +22,7 @@ export class CreateFileDto {
   size: number;
 
   @IsDateString()
-  uploadedAt: Date;
+  uploadedAt: string;
 
   @IsString()
   @IsOptional()
