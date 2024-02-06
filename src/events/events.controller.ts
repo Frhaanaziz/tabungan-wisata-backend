@@ -33,14 +33,15 @@ export class EventsController {
   @Get()
   getAllEvents(
     @Query()
-    { page, take = '10', search = '' }: GetPaginatedDataDto,
+    getPaginatedFilterDataDto: GetPaginatedDataDto & {
+      costLTE?: string;
+      costGTE?: string;
+      durationLTE?: string;
+      durationGTE?: string;
+    },
   ) {
-    if (page) {
-      return this.eventsService.getEventsPaginated({
-        page: parseInt(page),
-        take: parseInt(take),
-        search,
-      });
+    if (getPaginatedFilterDataDto.page) {
+      return this.eventsService.getEventsPaginated(getPaginatedFilterDataDto);
     }
 
     return this.eventsService.getEvents({});
