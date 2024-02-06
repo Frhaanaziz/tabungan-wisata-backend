@@ -24,7 +24,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
-          script: /
+          script: |
             source ~/.nvm/nvm.sh || true
             nvm use 20 || true
             cd /home/farhan/apps/tabungan-wisata-backend || true
