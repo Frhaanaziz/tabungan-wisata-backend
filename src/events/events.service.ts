@@ -99,22 +99,39 @@ export class EventsService {
     page,
     take,
     search,
+    costLTE,
+    costGTE,
+    durationLTE,
+    durationGTE,
   }: {
-    page: number;
-    take: number;
-    search: string;
+    page?: string;
+    take?: string;
+    search?: string;
+    costLTE?: string;
+    costGTE?: string;
+    durationLTE?: string;
+    durationGTE?: string;
   }) {
     return this.utilsService.getPaginatedResult({
-      page,
-      take,
+      page: page ? parseInt(page) : undefined,
+      take: take ? parseInt(take) : undefined,
       model: 'Event',
       where: {
         name: {
           contains: search,
         },
+        cost: {
+          lte: costLTE ? parseInt(costLTE) : undefined,
+          gte: costGTE ? parseInt(costGTE) : undefined,
+        },
+        duration: {
+          lte: durationLTE ? parseInt(durationLTE) : undefined,
+          gte: durationGTE ? parseInt(durationGTE) : undefined,
+        },
       } satisfies Prisma.EventWhereInput,
       include: {
         itineraries: true,
+        images: true,
       } satisfies Prisma.EventInclude,
       orderBy: {
         createdAt: 'desc',
