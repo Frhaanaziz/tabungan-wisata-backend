@@ -1,0 +1,35 @@
+name: Continuous Deployment
+on:
+  push:
+    branches: ['main']
+
+  pull_request:
+    types: [opened, reopened]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Alibaba Cloud
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: SSH and deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: /
+            source ~/.nvm/nvm.sh || true
+            nvm use 20 || true
+            cd /home/farhan/apps/tabungan-wisata-backend || true
+            git stash || true
+            git pull origin main || true
+            pnpm install || true
+            pnpm run build || true
+            NODE_ENV=production pm2 reload tw-dev --update-env || true
