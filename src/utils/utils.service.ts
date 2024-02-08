@@ -40,9 +40,6 @@ export class UtilsService {
 
     let rows = [];
 
-    console.log('savePage: ', savePage);
-    console.log('rowsPerPage: ', rowsPerPage);
-    console.log('skip: ', (savePage - 1) * rowsPerPage);
     try {
       if (where) {
         rows = await this.prisma[model].findMany({
