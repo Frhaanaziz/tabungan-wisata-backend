@@ -4,15 +4,11 @@ import { School } from '@prisma/client';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { Admin } from 'src/auth/admin.decorator';
 import { UpdateSchoolDto } from './dto/update-school.dto';
-import { EventsService } from 'src/events/events.service';
 import { GetPaginatedDataDto } from 'src/utils/dto/get-paginated-data.dto';
 
 @Controller('schools')
 export class SchoolsController {
-  constructor(
-    private readonly schoolsService: SchoolsService,
-    private readonly eventsService: EventsService,
-  ) {}
+  constructor(private readonly schoolsService: SchoolsService) {}
 
   @Admin()
   @Post()
