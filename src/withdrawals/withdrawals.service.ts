@@ -4,7 +4,6 @@ import { PrismaService } from 'nestjs-prisma';
 import { UtilsService } from 'src/utils/utils.service';
 import { CreateWithdrawalDto } from './dto/create-withdrawal.dto';
 import { UsersService } from 'src/users/users.service';
-import { SchoolsService } from 'src/schools/schools.service';
 
 @Injectable()
 export class WithdrawalsService {
@@ -12,7 +11,6 @@ export class WithdrawalsService {
     private readonly prisma: PrismaService,
     private readonly utilsService: UtilsService,
     private readonly usersService: UsersService,
-    private readonly schoolsService: SchoolsService,
   ) {}
 
   async getWithdrawal(
@@ -64,29 +62,39 @@ export class WithdrawalsService {
       schoolId,
     });
 
-    await this.usersService.updateUsers({
-      data: {
-        balance: {
-          set: 0,
+    return this.prisma.$transaction(async (tx) => {
+      await tx.user.updateMany({
+        data: {
+          balance: {
+            set: 0,
+          },
         },
-      },
-      where: {
-        schoolId,
-      },
-    });
+        where: {
+          schoolId,
+        },
+      });
 
-    return this.createWithdrawal({
-      amount: balance,
-      user: {
-        connect: {
-          id: userId,
+      const withdrawal = await tx.withdrawal.create({
+        data: {
+          amount: balance,
+          user: {
+            connect: {
+              id: userId,
+            },
+          },
+          school: {
+            connect: {
+              id: schoolId,
+            },
+          },
         },
-      },
-      school: {
-        connect: {
-          id: schoolId,
+        include: {
+          user: true,
+          school: true,
         },
-      },
+      });
+
+      return withdrawal;
     });
   }
 
@@ -134,16 +142,22 @@ export class WithdrawalsService {
       model: 'Withdrawal',
       where: {
         ...where,
-        user: {
-          name: {
-            contains: search,
+        OR: [
+          {
+            user: {
+              name: {
+                contains: search,
+              },
+            },
           },
-        },
-        school: {
-          name: {
-            contains: search,
+          {
+            school: {
+              name: {
+                contains: search,
+              },
+            },
           },
-        },
+        ],
       } satisfies Prisma.WithdrawalWhereInput,
       include: {
         user: true,
