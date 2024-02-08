@@ -118,12 +118,18 @@ export class UsersService {
       take,
       model: 'User',
       where: {
-        name: {
-          contains: search,
-        },
-        email: {
-          contains: search,
-        },
+        OR: [
+          {
+            name: {
+              contains: search,
+            },
+          },
+          {
+            email: {
+              contains: search,
+            },
+          },
+        ],
       } satisfies Prisma.UserWhereInput,
       include: {
         school: true,
