@@ -1,9 +1,8 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { VerificationsService } from './verifications.service';
 import { VerificationsController } from './verifications.controller';
 import { UtilsModule } from 'src/utils/utils.module';
 import { ResendModule } from 'nestjs-resend';
-import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
@@ -11,7 +10,6 @@ import { UsersModule } from 'src/users/users.module';
     ResendModule.forRoot({
       apiKey: process.env.RESEND_API_KEY,
     }),
-    forwardRef(() => UsersModule),
   ],
   controllers: [VerificationsController],
   providers: [VerificationsService],
