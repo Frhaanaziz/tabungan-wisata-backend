@@ -7,7 +7,6 @@ import {
 import { Payment, Prisma, User } from '@prisma/client';
 import { MidtransService } from 'src/midtrans/midtrans.service';
 import { PrismaService } from 'nestjs-prisma';
-import { UsersService } from 'src/users/users.service';
 import { UtilsService } from 'src/utils/utils.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 
