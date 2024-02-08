@@ -26,7 +26,7 @@ function generateRandomCode() {
 
 const prisma = new PrismaClient();
 async function main() {
-  console.log('Creating schools...');
+  console.info('Creating schools...');
   const schoolIds = [];
   for (let i = 0; i < faker.number.int({ min: 50, max: 100 }); i++) {
     const createdAt = faker.date.past();
@@ -45,7 +45,7 @@ async function main() {
     schoolIds.push(school.id);
   }
 
-  console.log('Creating events...');
+  console.info('Creating events...');
   const eventIds = [];
   for (let i = 0; i < 100; i++) {
     function generateRandomEventInclude() {
@@ -94,7 +94,7 @@ async function main() {
     eventIds.push(event.id);
   }
 
-  console.log('Creating event registrations...');
+  console.info('Creating event registrations...');
   schoolIds.forEach(async (schoolId) => {
     const startDate = new Date();
     const endDate = faker.date.between({
@@ -114,7 +114,7 @@ async function main() {
     });
   });
 
-  console.log('Creating users...');
+  console.info('Creating users...');
   for (let i = 0; i < faker.number.int({ min: 100, max: 200 }); i++) {
     const createdAt = faker.date.past();
     const updatedAt = faker.date.between({ from: createdAt, to: new Date() });
