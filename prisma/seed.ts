@@ -133,7 +133,8 @@ async function main() {
       provider: 'gmail',
     });
 
-    await prisma.user.create({
+    let balance: number = 0;
+    const user = await prisma.user.create({
       data: {
         email,
         name: fullName,
@@ -143,14 +144,16 @@ async function main() {
             data: Array.from({
               length: faker.number.int({ min: 10, max: 30 }),
             }).map(() => {
+              const amount = faker.number.int({ min: 10000, max: 2000000 });
               const createdAt = faker.date.past();
               const updatedAt = faker.date.between({
                 from: createdAt,
                 to: new Date(),
               });
 
+              balance += amount;
               return {
-                amount: faker.number.int({ min: 10000, max: 2000000 }),
+                amount,
                 paymentMethod: faker.helpers.arrayElement(paymentMethods),
                 status: faker.helpers.arrayElement(paymentStatus),
                 createdAt,
@@ -162,6 +165,14 @@ async function main() {
         createdAt,
         updatedAt,
         schoolId: faker.helpers.arrayElement(schoolIds),
+      },
+    });
+    await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        balance,
       },
     });
   }
