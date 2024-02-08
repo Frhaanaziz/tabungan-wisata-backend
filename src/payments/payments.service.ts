@@ -4,13 +4,12 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Payment, Prisma } from '@prisma/client';
+import { Payment, Prisma, User } from '@prisma/client';
 import { MidtransService } from 'src/midtrans/midtrans.service';
 import { PrismaService } from 'nestjs-prisma';
 import { UsersService } from 'src/users/users.service';
 import { UtilsService } from 'src/utils/utils.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
-import { EventsService } from 'src/events/events.service';
 
 @Injectable()
 export class PaymentsService {
@@ -18,10 +17,19 @@ export class PaymentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly utilsService: UtilsService,
-    private readonly usersService: UsersService,
     private readonly midtransService: MidtransService,
-    private readonly eventsService: EventsService,
   ) {}
+
+  // For avoiding circular dependency
+  private async getUser({
+    where,
+  }: {
+    where: Prisma.UserWhereUniqueInput;
+  }): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where,
+    });
+  }
 
   async getPayment(
     paymentWhereUniqueInput: Prisma.PaymentWhereUniqueInput,
@@ -126,7 +134,7 @@ export class PaymentsService {
   ) {
     const { baseUrl, userId, amount, ...restPaymentData } = input;
 
-    const user = await this.usersService.getUser({
+    const user = await this.getUser({
       where: {
         id: userId,
       },
