@@ -13,14 +13,14 @@ export class UtilsService {
 
   async getPaginatedResult({
     page,
-    take,
+    take = 10,
     model,
     where,
     include,
     orderBy,
   }: {
     page: number;
-    take: number;
+    take?: number;
     model: Prisma.ModelName;
     orderBy: object;
     where?: object;
@@ -40,6 +40,9 @@ export class UtilsService {
 
     let rows = [];
 
+    console.log('savePage: ', savePage);
+    console.log('rowsPerPage: ', rowsPerPage);
+    console.log('skip: ', (savePage - 1) * rowsPerPage);
     try {
       if (where) {
         rows = await this.prisma[model].findMany({
