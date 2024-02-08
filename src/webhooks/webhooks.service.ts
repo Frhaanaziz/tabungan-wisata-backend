@@ -4,16 +4,41 @@ import { Injectable } from '@nestjs/common';
 import { createHash } from 'crypto';
 import { MidtransNotificationDto } from './dto/midtrans-notification.dto';
 import { PaymentsService } from 'src/payments/payments.service';
-import { UsersService } from 'src/users/users.service';
+import { PrismaService } from 'nestjs-prisma';
 
 @Injectable()
 export class WebhooksService {
+  private readonly log = new Logger(WebhooksService.name);
   constructor(
     private readonly paymentsService: PaymentsService,
-    private readonly usersService: UsersService,
+    private readonly prisma: PrismaService,
   ) {}
 
-  private readonly log = new Logger(WebhooksService.name);
+  private updateStatusToSuccessAndUpdateUserBalance({
+    order_id,
+    payment_type,
+  }: {
+    order_id: string;
+    payment_type: string;
+  }) {
+    return this.prisma.$transaction(async (tx) => {
+      const updatedPayment = await tx.payment.update({
+        where: { id: order_id },
+        data: {
+          status: PaymentStatus.completed,
+          paymentMethod: payment_type,
+        },
+      });
+
+      // update user balance if payment status is completed
+      await tx.user.update({
+        where: { id: updatedPayment.userId },
+        data: { balance: { increment: updatedPayment.amount } },
+      });
+
+      return updatedPayment;
+    });
+  }
 
   async updateStatusPayment(
     {
@@ -44,35 +69,15 @@ export class WebhooksService {
 
     if (transaction_status == 'capture') {
       if (fraud_status == 'accept') {
-        const payment = await this.paymentsService.updatePayment({
-          where: { id: order_id },
-          data: {
-            status: PaymentStatus.completed,
-            paymentMethod: payment_type,
-          },
-        });
-        responseData = payment;
-
-        // update user balance if payment status is completed
-        await this.usersService.updateUser({
-          where: { id: payment.userId },
-          data: { balance: { increment: payment.amount } },
+        responseData = await this.updateStatusToSuccessAndUpdateUserBalance({
+          order_id,
+          payment_type,
         });
       }
     } else if (transaction_status == 'settlement') {
-      const payment = await this.paymentsService.updatePayment({
-        where: { id: order_id },
-        data: {
-          status: PaymentStatus.completed,
-          paymentMethod: payment_type,
-        },
-      });
-      responseData = payment;
-
-      // update user balance if payment status is completed
-      await this.usersService.updateUser({
-        where: { id: payment.userId },
-        data: { balance: { increment: payment.amount } },
+      responseData = await this.updateStatusToSuccessAndUpdateUserBalance({
+        order_id,
+        payment_type,
       });
     } else if (
       transaction_status == 'cancel' ||
