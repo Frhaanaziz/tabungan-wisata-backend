@@ -88,8 +88,7 @@ export class SchoolsService {
     take: number;
     search: string;
   }) {
-    console.log(search);
-    return this.utilsService.getPaginatedResult({
+    const { content, ...rest } = await this.utilsService.getPaginatedResult({
       page,
       take,
       model: 'School',
@@ -107,5 +106,28 @@ export class SchoolsService {
         updatedAt: 'desc',
       } satisfies Prisma.SchoolOrderByWithRelationInput,
     });
+
+    const schoolsWithBalance = content.map(async (school) => {
+      const {
+        _sum: { balance },
+      } = await this.prisma.user.aggregate({
+        _sum: {
+          balance: true,
+        },
+        where: {
+          schoolId: school.id,
+        },
+      });
+
+      return {
+        ...school,
+        balance: balance || 0,
+      };
+    });
+
+    return {
+      ...rest,
+      content: await Promise.all(schoolsWithBalance),
+    };
   }
 }
