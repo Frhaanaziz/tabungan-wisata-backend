@@ -11,6 +11,7 @@ import {
 import { EventRegistrationsService } from './event-registrations.service';
 import { CreateEventRegistrationDto } from './dto/create-event-registration.dto';
 import { Admin } from 'src/auth/admin.decorator';
+import { GetPaginatedDataDto } from 'src/utils/dto/get-paginated-data.dto';
 
 @Controller('event-registrations')
 export class EventRegistrationsController {
@@ -19,14 +20,33 @@ export class EventRegistrationsController {
   ) {}
 
   @Get()
-  async findAll(@Query() { schoolId }: { schoolId?: string }) {
-    const eventRegistrations =
-      await this.eventRegistrationsService.getEventRegistrations({
-        where: { schoolId },
-        include: { event: true },
+  async findAll(
+    @Query()
+    {
+      page,
+      take = '10',
+      search = '',
+      schoolId,
+    }: GetPaginatedDataDto & { schoolId?: string },
+  ) {
+    if (page) {
+      return this.eventRegistrationsService.getPaginated({
+        page: parseInt(page),
+        take: parseInt(take),
+        search,
       });
+    }
 
-    return eventRegistrations || [];
+    if (schoolId) {
+      const eventRegistrations =
+        await this.eventRegistrationsService.getEventRegistrations({
+          where: { schoolId },
+          include: { event: true },
+        });
+      return eventRegistrations || [];
+    }
+
+    return this.eventRegistrationsService.getEventRegistrations({});
   }
 
   @Admin()
