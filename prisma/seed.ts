@@ -130,7 +130,7 @@ async function main() {
       firstName,
       lastName,
       allowSpecialCharacters: false,
-      provider: 'gmail',
+      provider: 'gmail.com',
     });
 
     let balance: number = 0;
