@@ -144,7 +144,7 @@ async function main() {
             data: Array.from({
               length: faker.number.int({ min: 10, max: 30 }),
             }).map(() => {
-              const amount = faker.number.int({ min: 10000, max: 2000000 });
+              const amount = faker.number.int({ min: 10000, max: 500000 });
               const createdAt = faker.date.past();
               const updatedAt = faker.date.between({
                 from: createdAt,
