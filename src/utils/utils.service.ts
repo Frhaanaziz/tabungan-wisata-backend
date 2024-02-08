@@ -141,11 +141,19 @@ export class UtilsService {
     }
   }
 
-  generateJwtToken(payload: any) {
+  generateJwtToken(payload: { user: { id: string; role?: string } }) {
     return this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET,
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
+  }
+
+  refreshToken(token: string) {
+    const decoded = this.verifyJwtToken(token);
+    const user = decoded.user;
+    if (!user || !user.id) throw new UnauthorizedException('Invalid token');
+
+    return this.generateJwtToken({ user });
   }
 
   async hashPassword(password: string) {
