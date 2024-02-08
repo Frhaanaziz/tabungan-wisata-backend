@@ -62,7 +62,7 @@ async function main() {
         include: generateRandomEventInclude(),
         exclude: generateRandomEventInclude(),
         cost: faker.number.int({ min: 1000000, max: 5000000 }),
-        highlight: generateRandomEventInclude(),
+        highlight: faker.lorem.paragraphs(),
         duration: faker.number.int({ min: 2, max: 7 }),
         itineraries: {
           createMany: {
