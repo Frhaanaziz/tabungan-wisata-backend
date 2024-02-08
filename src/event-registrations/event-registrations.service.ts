@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { CreateEventRegistrationDto } from './dto/create-event-registration.dto';
-import { UpdateEventRegistrationDto } from './dto/update-event-registration.dto';
 import { EventRegistration, Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
+import { UtilsService } from 'src/utils/utils.service';
 
 @Injectable()
 export class EventRegistrationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly utilsService: UtilsService,
+  ) {}
 
   async getEventRegistration(
     eventRegistrationWhereUniqueInput: Prisma.EventRegistrationWhereUniqueInput,
@@ -62,6 +64,47 @@ export class EventRegistrationsService {
   ): Promise<EventRegistration> {
     return this.prisma.eventRegistration.delete({
       where,
+    });
+  }
+
+  async getPaginated({
+    page,
+    take,
+    search,
+  }: {
+    page: number;
+    take: number;
+    search: string;
+  }) {
+    return this.utilsService.getPaginatedResult({
+      page,
+      take,
+      model: 'EventRegistration',
+      where: {
+        OR: [
+          {
+            school: {
+              name: {
+                contains: search,
+              },
+            },
+          },
+          {
+            event: {
+              name: {
+                contains: search,
+              },
+            },
+          },
+        ],
+      } satisfies Prisma.EventRegistrationWhereInput,
+      include: {
+        event: true,
+        school: true,
+      } satisfies Prisma.EventRegistrationInclude,
+      orderBy: {
+        createdAt: 'desc',
+      } satisfies Prisma.EventRegistrationOrderByWithRelationInput,
     });
   }
 }
