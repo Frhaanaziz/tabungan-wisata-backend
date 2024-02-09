@@ -144,7 +144,6 @@ export class UtilsService {
   generateJwtToken(payload: { user: { id: string; role?: string } }) {
     return this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET,
-      expiresIn: process.env.JWT_EXPIRES_IN,
     });
   }
 

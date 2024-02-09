@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { SchoolsService } from './schools.service';
 import { School } from '@prisma/client';
 import { CreateSchoolDto } from './dto/create-school.dto';
@@ -48,9 +57,12 @@ export class SchoolsController {
   }
 
   @Get(':id')
-  getSchoolById(@Param('id') id: string): Promise<School> {
-    return this.schoolsService.getSchool({
+  async getSchoolById(@Param('id') id: string): Promise<School> {
+    const school = await this.schoolsService.getSchool({
       id,
     });
+    if (!school) throw new NotFoundException('School not found');
+
+    return school;
   }
 }
