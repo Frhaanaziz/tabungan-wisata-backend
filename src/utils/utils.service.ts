@@ -98,7 +98,7 @@ export class UtilsService {
       },
     });
 
-    return itemsInRange;
+    return itemsInRange || 0;
   }
 
   async getGrowthPercentageFromLastMonth({
