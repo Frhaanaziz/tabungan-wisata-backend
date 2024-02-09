@@ -13,8 +13,8 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { Admin } from 'src/auth/admin.decorator';
 import { Public } from 'src/auth/public.decorator';
-import { GetPaginatedDataDto } from 'src/utils/dto/get-paginated-data.dto';
 import { UtilsService } from 'src/utils/utils.service';
+import { GetEventsDto } from './dto/get-events.dto';
 
 @Controller('events')
 export class EventsController {
@@ -33,16 +33,15 @@ export class EventsController {
   @Get()
   getAllEvents(
     @Query()
-    getPaginatedFilterDataDto: GetPaginatedDataDto & {
-      costLTE?: string;
-      costGTE?: string;
-      durationLTE?: string;
-      durationGTE?: string;
-    },
+    getPaginatedFilterDataDto: GetEventsDto,
   ) {
-    if (getPaginatedFilterDataDto.page) {
+    const { page, highlighted } = getPaginatedFilterDataDto;
+
+    if (page)
       return this.eventsService.getEventsPaginated(getPaginatedFilterDataDto);
-    }
+
+    if (Boolean(highlighted))
+      return this.eventsService.getEvents({ where: { highlighted: true } });
 
     return this.eventsService.getEvents({});
   }
