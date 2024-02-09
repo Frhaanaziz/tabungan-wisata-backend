@@ -1,9 +1,10 @@
 import {
   IsString,
   IsNotEmpty,
-  IsDateString,
   IsNumber,
   Min,
+  IsBoolean,
+  IsOptional,
 } from 'class-validator';
 
 export class CreateEventDto {
@@ -26,6 +27,10 @@ export class CreateEventDto {
   @IsString()
   @IsNotEmpty()
   highlight: string;
+
+  @IsOptional()
+  @IsBoolean()
+  highlighted: boolean;
 
   @IsNumber()
   @Min(0)
