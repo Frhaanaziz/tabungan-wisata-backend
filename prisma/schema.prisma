@@ -50,6 +50,7 @@ model Event {
   exclude           String              @db.Text
   cost              Int
   duration          Int
+  highlighted       Boolean             @default(false)
   images            File[]
   itineraries       Itinerary[]
   eventRegistration EventRegistration[]
@@ -134,7 +135,7 @@ model File {
   thumbnailUrl String?
   size         Int
   uploadedAt   DateTime
-  event        Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event        Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull)
   eventId      String?
 
   @@index([eventId], name: "eventId")
