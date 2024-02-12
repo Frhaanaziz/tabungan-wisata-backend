@@ -3,7 +3,6 @@ import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import { JwtPayload } from 'src/auth/interface/jwt-payload.interface';
 import { UtilsService } from 'src/utils/utils.service';
-import { Notification } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 
 export interface socketMetaPayload extends JwtPayload {
@@ -50,7 +49,7 @@ export class NotificationsGateway implements OnModuleInit {
     });
   }
 
-  private async emitRecentNotifications({ userId }: { userId: string }) {
+  async emitRecentNotifications({ userId }: { userId: string }) {
     const socketMeta = this.socketMap.get(userId);
 
     if (socketMeta) {
@@ -67,22 +66,5 @@ export class NotificationsGateway implements OnModuleInit {
       const { socketId } = socketMeta;
       this.server.to(socketId).emit('recentNotifications', recentNotifications);
     }
-  }
-
-  async notifyNewNotification({
-    notification,
-    userId,
-  }: {
-    notification: Notification;
-    userId: string;
-  }) {
-    const socketMeta = this.socketMap.get(userId);
-
-    if (socketMeta) {
-      const { socketId } = socketMeta;
-      this.server.to(socketId).emit('newNotification', notification);
-    }
-
-    await this.emitRecentNotifications({ userId });
   }
 }
