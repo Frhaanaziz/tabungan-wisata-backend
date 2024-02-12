@@ -4,11 +4,12 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Payment, Prisma, User } from '@prisma/client';
+import { Payment, PaymentStatus, Prisma, User } from '@prisma/client';
 import { MidtransService } from 'src/midtrans/midtrans.service';
 import { PrismaService } from 'nestjs-prisma';
 import { UtilsService } from 'src/utils/utils.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
+import { NotificationsGateway } from 'src/notifications/notifications.gateway';
 
 @Injectable()
 export class PaymentsService {
@@ -17,6 +18,7 @@ export class PaymentsService {
     private readonly prisma: PrismaService,
     private readonly utilsService: UtilsService,
     private readonly midtransService: MidtransService,
+    private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
   // For avoiding circular dependency
@@ -95,16 +97,19 @@ export class PaymentsService {
     take,
     search,
     where,
+    include,
   }: {
     page: number;
     take: number;
     search: string;
+    include?: Prisma.PaymentInclude;
     where?: Prisma.PaymentWhereInput;
   }) {
     return this.utilsService.getPaginatedResult({
       page,
       take,
       model: 'Payment',
+      include,
       where: {
         ...where,
         user: {
@@ -113,9 +118,6 @@ export class PaymentsService {
           },
         },
       } satisfies Prisma.PaymentWhereInput,
-      include: {
-        user: true,
-      } satisfies Prisma.PaymentInclude,
       orderBy: {
         createdAt: 'desc',
       } satisfies Prisma.PaymentOrderByWithRelationInput,
@@ -188,6 +190,137 @@ export class PaymentsService {
       data,
       where,
     });
+  }
+
+  async handleSuccessPayment({
+    order_id,
+    payment_type,
+  }: {
+    order_id: string;
+    payment_type: string;
+  }) {
+    const { notification, payment } = await this.prisma.$transaction(
+      async (tx) => {
+        const payment = await tx.payment.update({
+          where: { id: order_id },
+          data: {
+            status: PaymentStatus.completed,
+            paymentMethod: payment_type,
+          },
+        });
+
+        // update user balance if payment status is completed
+        await tx.user.update({
+          where: { id: payment.userId },
+          data: { balance: { increment: payment.amount } },
+        });
+
+        const notification = await tx.notification.create({
+          data: {
+            type: 'transaction',
+            status: 'completed',
+            message: 'Transaction completed successfully.',
+            user: {
+              connect: {
+                id: payment.userId,
+              },
+            },
+          },
+        });
+
+        return { payment, notification };
+      },
+    );
+    await this.notificationsGateway.notifyNewNotification({
+      notification,
+      userId: payment.userId,
+    });
+
+    return payment;
+  }
+
+  async handleFailedPayment({
+    order_id,
+    payment_type,
+  }: {
+    order_id: string;
+    payment_type: string;
+  }) {
+    const { notification, payment } = await this.prisma.$transaction(
+      async (tx) => {
+        const payment = await tx.payment.update({
+          where: { id: order_id },
+          data: {
+            status: PaymentStatus.failed,
+            paymentMethod: payment_type,
+          },
+        });
+
+        const notification = await tx.notification.create({
+          data: {
+            type: 'transaction',
+            status: 'failed',
+            message: 'Transfer incomplete. Please retry transfer.',
+            user: {
+              connect: {
+                id: payment.userId,
+              },
+            },
+          },
+        });
+
+        return { payment, notification };
+      },
+    );
+
+    await this.notificationsGateway.notifyNewNotification({
+      notification,
+      userId: payment.userId,
+    });
+
+    return payment;
+  }
+
+  async handlePendingPayment({
+    order_id,
+    payment_type,
+  }: {
+    order_id: string;
+    payment_type: string;
+  }) {
+    const { notification, payment } = await this.prisma.$transaction(
+      async (tx) => {
+        const payment = await tx.payment.update({
+          where: { id: order_id },
+          data: {
+            status: PaymentStatus.pending,
+            paymentMethod: payment_type,
+          },
+        });
+
+        const notification = await tx.notification.create({
+          data: {
+            type: 'transaction',
+            status: 'pending',
+            message: 'Payment received. Awaiting processing.',
+            user: {
+              connect: {
+                id: payment.userId,
+              },
+            },
+          },
+        });
+
+        return { payment, notification };
+      },
+    );
+
+    await this.notificationsGateway.notifyNewNotification({
+      notification,
+      userId: payment.userId,
+    });
+
+    return payment;
   }
 
   async deletePayment(where: Prisma.PaymentWhereUniqueInput): Promise<Payment> {
