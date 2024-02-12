@@ -41,6 +41,7 @@ export class PaymentsController {
         page: parseInt(page),
         take: parseInt(take),
         search,
+        include: { user: true },
       });
     } else if (completed) {
       return this.paymentsService.getCompletedPayments({
