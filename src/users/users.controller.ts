@@ -18,6 +18,7 @@ import { UpdateUserSchoolDto } from './dto/update-user-school.dto';
 import { PaymentsService } from 'src/payments/payments.service';
 import { GetPaginatedDataDto } from 'src/utils/dto/get-paginated-data.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Controller('users')
 export class UsersController {
@@ -25,6 +26,7 @@ export class UsersController {
     private usersService: UsersService,
     private utilsService: UtilsService,
     private paymentsService: PaymentsService,
+    private notificationsService: NotificationsService,
   ) {}
 
   @Admin()
@@ -134,15 +136,7 @@ export class UsersController {
   getUserPayments(
     @Param('id') id: string,
     @Query()
-    {
-      page,
-      take = '10',
-      search = '',
-    }: {
-      page?: string;
-      take?: string;
-      search?: string;
-    },
+    { page, take = '10', search = '' }: GetPaginatedDataDto,
   ) {
     if (page) {
       return this.paymentsService.getPaymentsPaginated({
@@ -156,6 +150,30 @@ export class UsersController {
     }
 
     return this.paymentsService.getPayments({
+      where: {
+        userId: id,
+      },
+    });
+  }
+
+  @Get(':id/notifications')
+  getUserNotifications(
+    @Param('id') id: string,
+    @Query()
+    { page, take = '10', search = '' }: GetPaginatedDataDto,
+  ) {
+    if (page) {
+      return this.notificationsService.getNotificationsPaginated({
+        page: parseInt(page),
+        take: parseInt(take),
+        search,
+        where: {
+          userId: id,
+        },
+      });
+    }
+
+    return this.notificationsService.getNotifications({
       where: {
         userId: id,
       },
