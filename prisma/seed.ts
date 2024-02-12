@@ -146,6 +146,8 @@ async function main() {
         email,
         name: fullName,
         image: faker.image.avatar(),
+        password:
+          '$2a$13$4.dMmMkp3jbb6nZizXBnluD3pKwZAFNa9L2lMyOccmIu5K.MWtKgO',
         payments: {
           createMany: {
             data: Array.from({
