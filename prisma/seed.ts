@@ -82,7 +82,7 @@ async function main() {
               url: faker.image.urlLoremFlickr({
                 category: 'city',
                 width: 1280,
-                height: 720,
+                height: 960,
               }),
               size: faker.number.int({ min: 1_000_000, max: 5_000_000 }),
               uploadedAt: faker.date.past(),
@@ -132,6 +132,13 @@ async function main() {
       allowSpecialCharacters: false,
       provider: 'gmail.com',
     });
+    const paymentsCount = faker.number.int({ min: 10, max: 30 });
+    let paymentCreatedAt: Date = faker.date.past();
+    let paymentUpdatedAt: Date = faker.date.between({
+      from: paymentCreatedAt,
+      to: new Date(),
+    });
+    const status = faker.helpers.arrayElement(paymentStatus);
 
     let balance: number = 0;
     const user = await prisma.user.create({
@@ -142,11 +149,11 @@ async function main() {
         payments: {
           createMany: {
             data: Array.from({
-              length: faker.number.int({ min: 10, max: 30 }),
+              length: paymentsCount,
             }).map(() => {
               const amount = faker.number.int({ min: 10000, max: 500000 });
-              const createdAt = faker.date.past();
-              const updatedAt = faker.date.between({
+              paymentCreatedAt = faker.date.past();
+              paymentUpdatedAt = faker.date.between({
                 from: createdAt,
                 to: new Date(),
               });
@@ -155,9 +162,30 @@ async function main() {
               return {
                 amount,
                 paymentMethod: faker.helpers.arrayElement(paymentMethods),
-                status: faker.helpers.arrayElement(paymentStatus),
-                createdAt,
-                updatedAt,
+                status,
+                createdAt: paymentCreatedAt,
+                updatedAt: paymentUpdatedAt,
+              };
+            }),
+          },
+        },
+        notifications: {
+          createMany: {
+            data: Array.from({ length: paymentsCount }).map(() => {
+              const message =
+                status === 'completed'
+                  ? 'Transaction completed successfully.'
+                  : status === 'failed'
+                    ? 'Transfer incomplete. Please retry transfer.'
+                    : 'Payment received. Awaiting processing.';
+
+              return {
+                message,
+                type: 'transaction',
+                status,
+                isRead: false,
+                createdAt: paymentUpdatedAt,
+                updatedAt: paymentUpdatedAt,
               };
             }),
           },
