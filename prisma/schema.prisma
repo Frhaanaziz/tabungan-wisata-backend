@@ -13,14 +13,15 @@ model User {
   name          String
   email         String         @unique
   password      String?
-  role          String         @default("student")
+  role          UserRole       @default(student)
   image         String?
   emailVerified Boolean        @default(false)
   schoolId      String?
   balance       Int            @default(0)
   payments      Payment[]
-  Withdrawal    Withdrawal[]
-  verification  Verification[]
+  withdrawals   Withdrawal[]
+  verifications Verification[]
+  notifications Notification[]
   accounts      Account[]
   school        School?        @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   createdAt     DateTime       @default(now())
@@ -30,32 +31,32 @@ model User {
 }
 
 model School {
-  id                String              @id @default(cuid())
-  code              String              @unique
-  name              String
-  address           String              @db.Text
-  contact           String
-  users             User[]
-  withdrawals       Withdrawal[]
-  eventRegistration EventRegistration[]
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  id                 String              @id @default(cuid())
+  code               String              @unique
+  name               String
+  address            String              @db.Text
+  contact            String
+  users              User[]
+  withdrawals        Withdrawal[]
+  eventRegistrations EventRegistration[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 }
 
 model Event {
-  id                String              @id @default(cuid())
-  name              String
-  highlight         String              @db.Text
-  include           String              @db.Text
-  exclude           String              @db.Text
-  cost              Int
-  duration          Int
-  highlighted       Boolean             @default(false)
-  images            File[]
-  itineraries       Itinerary[]
-  eventRegistration EventRegistration[]
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  id                 String              @id @default(cuid())
+  name               String
+  highlight          String              @db.Text
+  include            String              @db.Text
+  exclude            String              @db.Text
+  cost               Int
+  duration           Int
+  highlighted        Boolean             @default(false)
+  images             File[]
+  itineraries        Itinerary[]
+  eventRegistrations EventRegistration[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 }
 
 model Itinerary {
@@ -110,6 +111,20 @@ model EventRegistration {
   @@index([schoolId], name: "schoolId")
 }
 
+model Notification {
+  id        String           @id @default(cuid())
+  message   String
+  isRead    Boolean          @default(false)
+  type      NotificationType
+  status    PaymentStatus?
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([userId], name: "userId")
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -159,6 +174,11 @@ enum UserRole {
   student
   teacher
   admin
+}
+
+enum NotificationType {
+  transaction
+  info
 }
 
 enum PaymentStatus {
