@@ -1,44 +1,14 @@
 import { Logger, UnauthorizedException } from '@nestjs/common';
-import { Payment, PaymentStatus } from '@prisma/client';
+import { Payment } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
 import { createHash } from 'crypto';
 import { MidtransNotificationDto } from './dto/midtrans-notification.dto';
 import { PaymentsService } from 'src/payments/payments.service';
-import { PrismaService } from 'nestjs-prisma';
 
 @Injectable()
 export class WebhooksService {
   private readonly log = new Logger(WebhooksService.name);
-  constructor(
-    private readonly paymentsService: PaymentsService,
-    private readonly prisma: PrismaService,
-  ) {}
-
-  private updateStatusToSuccessAndUpdateUserBalance({
-    order_id,
-    payment_type,
-  }: {
-    order_id: string;
-    payment_type: string;
-  }) {
-    return this.prisma.$transaction(async (tx) => {
-      const updatedPayment = await tx.payment.update({
-        where: { id: order_id },
-        data: {
-          status: PaymentStatus.completed,
-          paymentMethod: payment_type,
-        },
-      });
-
-      // update user balance if payment status is completed
-      await tx.user.update({
-        where: { id: updatedPayment.userId },
-        data: { balance: { increment: updatedPayment.amount } },
-      });
-
-      return updatedPayment;
-    });
-  }
+  constructor(private readonly paymentsService: PaymentsService) {}
 
   async updateStatusPayment(
     {
@@ -69,13 +39,13 @@ export class WebhooksService {
 
     if (transaction_status == 'capture') {
       if (fraud_status == 'accept') {
-        responseData = await this.updateStatusToSuccessAndUpdateUserBalance({
+        responseData = await this.paymentsService.handleSuccessPayment({
           order_id,
           payment_type,
         });
       }
     } else if (transaction_status == 'settlement') {
-      responseData = await this.updateStatusToSuccessAndUpdateUserBalance({
+      responseData = await this.paymentsService.handleSuccessPayment({
         order_id,
         payment_type,
       });
@@ -84,26 +54,18 @@ export class WebhooksService {
       transaction_status == 'deny' ||
       transaction_status == 'expire'
     ) {
-      const payment = await this.paymentsService.updatePayment({
-        where: { id: order_id },
-        data: {
-          status: PaymentStatus.failed,
-          paymentMethod: payment_type,
-        },
+      responseData = await this.paymentsService.handleFailedPayment({
+        order_id,
+        payment_type,
       });
-      responseData = payment;
     } else if (transaction_status == 'pending') {
       // check if payment status is already completed
       if (payment.status === 'completed') return payment;
 
-      const updatedPayment = await this.paymentsService.updatePayment({
-        where: { id: order_id },
-        data: {
-          status: PaymentStatus.pending,
-          paymentMethod: payment_type,
-        },
+      responseData = await this.paymentsService.handlePendingPayment({
+        order_id,
+        payment_type,
       });
-      responseData = updatedPayment;
     } else {
       this.log.error(
         `Invalid transaction_status "${transaction_status}" in updateStatusBasedOnMidtransResponse`,
