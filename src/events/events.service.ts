@@ -25,6 +25,22 @@ export class EventsService {
   }
 
   async getEvents(params: {
+    take?: number;
+    where?: Prisma.EventWhereInput;
+    orderBy?: Prisma.EventOrderByWithRelationInput;
+  }): Promise<Event[]> {
+    const { take, where, orderBy } = params;
+    return this.prisma.event.findMany({
+      take,
+      where,
+      orderBy: {
+        createdAt: 'desc',
+        ...orderBy,
+      },
+    });
+  }
+
+  async getEventsJoin(params: {
     skip?: number;
     take?: number;
     cursor?: Prisma.EventWhereUniqueInput;
