@@ -204,7 +204,6 @@ export class UsersService {
     const updatedUser = await this.updateUser({
       where: { id: userId },
       data: { emailVerified },
-      include: { verification: true },
     });
 
     await this.verificationsService.updateVerification({
