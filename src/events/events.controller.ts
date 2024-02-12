@@ -41,7 +41,7 @@ export class EventsController {
       return this.eventsService.getEventsPaginated(getPaginatedFilterDataDto);
 
     if (Boolean(highlighted))
-      return this.eventsService.getEvents({ where: { highlighted: true } });
+      return this.eventsService.getEventsJoin({ where: { highlighted: true } });
 
     return this.eventsService.getEvents({});
   }
