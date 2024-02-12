@@ -3,6 +3,8 @@ import * as Joi from 'joi';
 export const configValidationSchema = Joi.object({
   DATABASE_URL: Joi.string().required(),
   PORT: Joi.number().required(),
+  WS_PORT: Joi.number().required(),
+  STUDENT_URL: Joi.string().required(),
 
   JWT_SECRET: Joi.string().required(),
 
