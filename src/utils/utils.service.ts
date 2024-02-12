@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'nestjs-prisma';
+import { JwtPayload } from 'src/auth/interface/jwt-payload.interface';
 
 @Injectable()
 export class UtilsService {
@@ -131,13 +132,12 @@ export class UtilsService {
 
   verifyJwtToken(token: string) {
     try {
-      return this.jwtService.verify(token, {
+      const payload = this.jwtService.verify(token, {
         secret: process.env.JWT_SECRET,
       });
+      return payload as JwtPayload;
     } catch (error) {
-      throw new UnauthorizedException(
-        'Invalid token, please request a new one',
-      );
+      return null;
     }
   }
 
@@ -149,6 +149,11 @@ export class UtilsService {
 
   refreshToken(token: string) {
     const decoded = this.verifyJwtToken(token);
+    if (!decoded)
+      throw new UnauthorizedException(
+        'Invalid token, please request a new one',
+      );
+
     const user = decoded.user;
     if (!user || !user.id) throw new UnauthorizedException('Invalid token');
 
