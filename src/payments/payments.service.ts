@@ -199,40 +199,37 @@ export class PaymentsService {
     order_id: string;
     payment_type: string;
   }) {
-    const { notification, payment } = await this.prisma.$transaction(
-      async (tx) => {
-        const payment = await tx.payment.update({
-          where: { id: order_id },
-          data: {
-            status: PaymentStatus.completed,
-            paymentMethod: payment_type,
-          },
-        });
+    const payment = await this.prisma.$transaction(async (tx) => {
+      const payment = await tx.payment.update({
+        where: { id: order_id },
+        data: {
+          status: PaymentStatus.completed,
+          paymentMethod: payment_type,
+        },
+      });
 
-        // update user balance if payment status is completed
-        await tx.user.update({
-          where: { id: payment.userId },
-          data: { balance: { increment: payment.amount } },
-        });
+      // update user balance if payment status is completed
+      await tx.user.update({
+        where: { id: payment.userId },
+        data: { balance: { increment: payment.amount } },
+      });
 
-        const notification = await tx.notification.create({
-          data: {
-            type: 'transaction',
-            status: 'completed',
-            message: 'Transaction completed successfully.',
-            user: {
-              connect: {
-                id: payment.userId,
-              },
+      await tx.notification.create({
+        data: {
+          type: 'transaction',
+          status: 'completed',
+          message: 'Transaction completed successfully.',
+          user: {
+            connect: {
+              id: payment.userId,
             },
           },
-        });
+        },
+      });
 
-        return { payment, notification };
-      },
-    );
-    await this.notificationsGateway.notifyNewNotification({
-      notification,
+      return payment;
+    });
+    await this.notificationsGateway.emitRecentNotifications({
       userId: payment.userId,
     });
 
@@ -246,35 +243,32 @@ export class PaymentsService {
     order_id: string;
     payment_type: string;
   }) {
-    const { notification, payment } = await this.prisma.$transaction(
-      async (tx) => {
-        const payment = await tx.payment.update({
-          where: { id: order_id },
-          data: {
-            status: PaymentStatus.failed,
-            paymentMethod: payment_type,
-          },
-        });
+    const payment = await this.prisma.$transaction(async (tx) => {
+      const payment = await tx.payment.update({
+        where: { id: order_id },
+        data: {
+          status: PaymentStatus.failed,
+          paymentMethod: payment_type,
+        },
+      });
 
-        const notification = await tx.notification.create({
-          data: {
-            type: 'transaction',
-            status: 'failed',
-            message: 'Transfer incomplete. Please retry transfer.',
-            user: {
-              connect: {
-                id: payment.userId,
-              },
+      await tx.notification.create({
+        data: {
+          type: 'transaction',
+          status: 'failed',
+          message: 'Transfer incomplete. Please retry transfer.',
+          user: {
+            connect: {
+              id: payment.userId,
             },
           },
-        });
+        },
+      });
 
-        return { payment, notification };
-      },
-    );
+      return payment;
+    });
 
-    await this.notificationsGateway.notifyNewNotification({
-      notification,
+    await this.notificationsGateway.emitRecentNotifications({
       userId: payment.userId,
     });
 
@@ -288,35 +282,32 @@ export class PaymentsService {
     order_id: string;
     payment_type: string;
   }) {
-    const { notification, payment } = await this.prisma.$transaction(
-      async (tx) => {
-        const payment = await tx.payment.update({
-          where: { id: order_id },
-          data: {
-            status: PaymentStatus.pending,
-            paymentMethod: payment_type,
-          },
-        });
+    const payment = await this.prisma.$transaction(async (tx) => {
+      const payment = await tx.payment.update({
+        where: { id: order_id },
+        data: {
+          status: PaymentStatus.pending,
+          paymentMethod: payment_type,
+        },
+      });
 
-        const notification = await tx.notification.create({
-          data: {
-            type: 'transaction',
-            status: 'pending',
-            message: 'Payment received. Awaiting processing.',
-            user: {
-              connect: {
-                id: payment.userId,
-              },
+      await tx.notification.create({
+        data: {
+          type: 'transaction',
+          status: 'pending',
+          message: 'Payment received. Awaiting processing.',
+          user: {
+            connect: {
+              id: payment.userId,
             },
           },
-        });
+        },
+      });
 
-        return { payment, notification };
-      },
-    );
+      return payment;
+    });
 
-    await this.notificationsGateway.notifyNewNotification({
-      notification,
+    await this.notificationsGateway.emitRecentNotifications({
       userId: payment.userId,
     });
 
