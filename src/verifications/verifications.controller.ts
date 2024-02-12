@@ -1,8 +1,13 @@
-import { BadRequestException, Body, Controller, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Post,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { VerificationsService } from './verifications.service';
 import { Public } from 'src/auth/public.decorator';
 import { VerifyEmailDto } from './dto/verify-email.dto';
-import { UsersService } from 'src/users/users.service';
 import { UtilsService } from 'src/utils/utils.service';
 import { VerifyTokenDto } from './dto/verify-token.dto';
 import { Prisma, User } from '@prisma/client';
@@ -57,7 +62,13 @@ export class VerificationsController {
   @Public()
   @Post('/verify-token')
   async verifyToken(@Body() { token }: VerifyTokenDto) {
-    return this.utilsService.verifyJwtToken(token);
+    const decoded = this.utilsService.verifyJwtToken(token);
+    if (!decoded)
+      throw new UnauthorizedException(
+        'Invalid token, please request a new one',
+      );
+
+    return decoded;
   }
 
   @Post('/refresh-token')
