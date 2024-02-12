@@ -65,7 +65,7 @@ export class EventsController {
   @Public()
   @Get('/ids')
   getAllEventsId() {
-    return this.eventsService.getEvents({
+    return this.eventsService.getEventsJoin({
       select: { id: true },
     });
   }
