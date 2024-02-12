@@ -51,10 +51,15 @@ export class UsersController {
     @Query('token') token: string | undefined,
   ) {
     if (!token) throw new UnauthorizedException('Unauthorized');
-    const { user } = await this.utilsService.verifyJwtToken(token);
+
+    const payload = this.utilsService.verifyJwtToken(token);
+    if (!payload)
+      throw new UnauthorizedException(
+        'Invalid token, please request a new one',
+      );
 
     return this.usersService.resetPassword({
-      userId: user.id,
+      userId: payload.user.id,
       newPassword,
     });
   }
