@@ -20,6 +20,7 @@ import { ItinerariesModule } from './itineraries/itineraries.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { WithdrawalsModule } from './withdrawals/withdrawals.module';
 import { EventRegistrationsModule } from './event-registrations/event-registrations.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { EventRegistrationsModule } from './event-registrations/event-registrati
     WebhooksModule,
     WithdrawalsModule,
     EventRegistrationsModule,
+    NotificationsModule,
   ],
   providers: [
     AppService,
