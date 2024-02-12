@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { Notification, Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
+import { UtilsService } from 'src/utils/utils.service';
 
 @Injectable()
 export class NotificationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly utilsService: UtilsService,
+  ) {}
 
   async getNotification(
     where: Prisma.NotificationWhereUniqueInput,
@@ -39,6 +43,36 @@ export class NotificationsService {
         createdAt: 'desc',
         ...orderBy,
       },
+    });
+  }
+
+  async getNotificationsPaginated({
+    page,
+    take,
+    search,
+    where,
+    include,
+  }: {
+    page: number;
+    take: number;
+    search: string;
+    include?: Prisma.NotificationInclude;
+    where?: Prisma.NotificationWhereInput;
+  }) {
+    return this.utilsService.getPaginatedResult({
+      page,
+      take,
+      model: 'Notification',
+      include,
+      where: {
+        ...where,
+        message: {
+          contains: search,
+        },
+      } satisfies Prisma.NotificationWhereInput,
+      orderBy: {
+        createdAt: 'desc',
+      } satisfies Prisma.NotificationOrderByWithRelationInput,
     });
   }
 
