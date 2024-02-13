@@ -14,10 +14,14 @@ import { CreateSchoolDto } from './dto/create-school.dto';
 import { Admin } from 'src/auth/admin.decorator';
 import { UpdateSchoolDto } from './dto/update-school.dto';
 import { GetPaginatedDataDto } from 'src/utils/dto/get-paginated-data.dto';
+import { EventRegistrationsService } from 'src/event-registrations/event-registrations.service';
 
 @Controller('schools')
 export class SchoolsController {
-  constructor(private readonly schoolsService: SchoolsService) {}
+  constructor(
+    private readonly schoolsService: SchoolsService,
+    private readonly eventRegistrations: EventRegistrationsService,
+  ) {}
 
   @Admin()
   @Post()
@@ -64,5 +68,13 @@ export class SchoolsController {
     if (!school) throw new NotFoundException('School not found');
 
     return school;
+  }
+
+  @Get(':id/eventRegistrations')
+  async getSchoolEventRegistrations(@Param('id') id: string) {
+    return this.eventRegistrations.getEventRegistrations({
+      where: { schoolId: id },
+      include: { event: true },
+    });
   }
 }
