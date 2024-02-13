@@ -70,14 +70,15 @@ model Itinerary {
 }
 
 model Payment {
-  id            String        @id @default(cuid())
+  id            String         @id @default(cuid())
   amount        Int
   userId        String
   paymentMethod String?
-  status        PaymentStatus @default(pending)
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade) // WARNING: CASCADE DELETE
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  status        PaymentStatus  @default(pending)
+  notifications Notification[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade) // WARNING: CASCADE DELETE
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   @@index([userId], name: "userId")
 }
@@ -119,10 +120,13 @@ model Notification {
   status    PaymentStatus?
   userId    String
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentId String?
+  payment   Payment?         @relation(fields: [paymentId], references: [id], onDelete: SetNull)
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
   @@index([userId], name: "userId")
+  @@index([paymentId], name: "paymentId")
 }
 
 model Account {
