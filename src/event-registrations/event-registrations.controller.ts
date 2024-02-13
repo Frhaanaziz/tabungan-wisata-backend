@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Put, Param } from '@nestjs/common';
 import { EventRegistrationsService } from './event-registrations.service';
 import { CreateEventRegistrationDto } from './dto/create-event-registration.dto';
 import { Admin } from 'src/auth/admin.decorator';
 import { GetPaginatedDataDto } from 'src/utils/dto/get-paginated-data.dto';
+import { UpdateEventRegistrationDto } from './dto/update-event-registration.dto';
 
 @Controller('event-registrations')
 export class EventRegistrationsController {
@@ -13,12 +14,7 @@ export class EventRegistrationsController {
   @Get()
   async findAll(
     @Query()
-    {
-      page,
-      take = '10',
-      search = '',
-      schoolId,
-    }: GetPaginatedDataDto & { schoolId?: string },
+    { page, take = '10', search = '' }: GetPaginatedDataDto,
   ) {
     if (page) {
       return this.eventRegistrationsService.getPaginated({
@@ -26,15 +22,6 @@ export class EventRegistrationsController {
         take: parseInt(take),
         search,
       });
-    }
-
-    if (schoolId) {
-      const eventRegistrations =
-        await this.eventRegistrationsService.getEventRegistrations({
-          where: { schoolId },
-          include: { event: true },
-        });
-      return eventRegistrations || [];
     }
 
     return this.eventRegistrationsService.getEventRegistrations({});
@@ -47,6 +34,15 @@ export class EventRegistrationsController {
       ...rest,
       event: { connect: { id: eventId } },
       school: { connect: { id: schoolId } },
+    });
+  }
+
+  @Admin()
+  @Put(":id")
+  update(@Param("id") id: string, @Body() data: UpdateEventRegistrationDto) {
+    return this.eventRegistrationsService.updateEventRegistration({
+      where: { id },
+      data,
     });
   }
 }
