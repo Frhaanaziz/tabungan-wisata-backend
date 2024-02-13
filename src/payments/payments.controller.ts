@@ -50,7 +50,7 @@ export class PaymentsController {
       });
     }
 
-    return this.paymentsService.getPayments({
+    return this.paymentsService.getPaymentsJoined({
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -75,12 +75,6 @@ export class PaymentsController {
       } satisfies Prisma.PaymentWhereInput,
     });
   }
-
-  // @Admin()
-  // @Get('/monthly')
-  // getMonthlyPayments() {
-  //   return this.paymentsService.getPaymentsByMonth();
-  // }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
