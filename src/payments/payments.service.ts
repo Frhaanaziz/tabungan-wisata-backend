@@ -41,6 +41,20 @@ export class PaymentsService {
   }
 
   async getPayments(params: {
+    where?: Prisma.PaymentWhereInput;
+    orderBy?: Prisma.PaymentOrderByWithRelationInput;
+  }): Promise<Payment[]> {
+    const { where, orderBy } = params;
+    return this.prisma.payment.findMany({
+      where,
+      orderBy: {
+        createdAt: 'desc',
+        ...orderBy,
+      },
+    });
+  }
+
+  async getPaymentsJoined(params: {
     skip?: number;
     take?: number;
     cursor?: Prisma.PaymentWhereUniqueInput;
@@ -214,18 +228,25 @@ export class PaymentsService {
         data: { balance: { increment: payment.amount } },
       });
 
-      await tx.notification.create({
-        data: {
-          type: 'transaction',
+      // Check if there is already a completed notification
+      const notificaton = await tx.notification.findFirst({
+        where: {
+          paymentId: payment.id,
           status: 'completed',
-          message: 'Transaction completed successfully.',
-          user: {
-            connect: {
-              id: payment.userId,
-            },
-          },
         },
       });
+      // If not, create a new completed notification
+      if (!notificaton) {
+        await tx.notification.create({
+          data: {
+            type: 'transaction',
+            status: 'completed',
+            message: 'Transaction completed successfully.',
+            payment: { connect: { id: payment.id } },
+            user: { connect: { id: payment.userId } },
+          },
+        });
+      }
 
       return payment;
     });
@@ -252,18 +273,25 @@ export class PaymentsService {
         },
       });
 
-      await tx.notification.create({
-        data: {
-          type: 'transaction',
+      // Check if there is already a failed notification
+      const notificaton = await tx.notification.findFirst({
+        where: {
+          paymentId: payment.id,
           status: 'failed',
-          message: 'Transfer incomplete. Please retry transfer.',
-          user: {
-            connect: {
-              id: payment.userId,
-            },
-          },
         },
       });
+      // If not, create a new failed notification
+      if (!notificaton) {
+        await tx.notification.create({
+          data: {
+            type: 'transaction',
+            status: 'failed',
+            message: 'Transfer incomplete. Please retry transfer.',
+            payment: { connect: { id: payment.id } },
+            user: { connect: { id: payment.userId } },
+          },
+        });
+      }
 
       return payment;
     });
@@ -291,18 +319,25 @@ export class PaymentsService {
         },
       });
 
-      await tx.notification.create({
-        data: {
-          type: 'transaction',
+      // Check if there is already a pending notification
+      const notificaton = await tx.notification.findFirst({
+        where: {
+          paymentId: payment.id,
           status: 'pending',
-          message: 'Payment received. Awaiting processing.',
-          user: {
-            connect: {
-              id: payment.userId,
-            },
-          },
         },
       });
+      // If not, create a new pending notification
+      if (!notificaton) {
+        await tx.notification.create({
+          data: {
+            type: 'transaction',
+            status: 'pending',
+            message: 'Payment received. Awaiting processing.',
+            payment: { connect: { id: payment.id } },
+            user: { connect: { id: payment.userId } },
+          },
+        });
+      }
 
       return payment;
     });
