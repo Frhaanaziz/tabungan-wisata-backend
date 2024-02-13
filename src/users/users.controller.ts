@@ -19,6 +19,7 @@ import { PaymentsService } from 'src/payments/payments.service';
 import { GetPaginatedDataDto } from 'src/utils/dto/get-paginated-data.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
+import { PaymentStatus } from '@prisma/client';
 
 @Controller('users')
 export class UsersController {
@@ -136,7 +137,12 @@ export class UsersController {
   getUserPayments(
     @Param('id') id: string,
     @Query()
-    { page, take = '10', search = '' }: GetPaginatedDataDto,
+    {
+      page,
+      take = '10',
+      search = '',
+      filter,
+    }: GetPaginatedDataDto & { filter?: string },
   ) {
     if (page) {
       return this.paymentsService.getPaymentsPaginated({
@@ -145,6 +151,19 @@ export class UsersController {
         search,
         where: {
           userId: id,
+        },
+      });
+    }
+
+    if (filter && filter.includes('status:')) {
+      const status = filter.split(':')[1];
+      if (!(status in PaymentStatus))
+        throw new NotFoundException('Invalid status');
+
+      return this.paymentsService.getPayments({
+        where: {
+          userId: id,
+          status: status as PaymentStatus,
         },
       });
     }
