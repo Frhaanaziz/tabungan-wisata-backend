@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { Payment, PrismaClient } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 
 const paymentMethods = [
@@ -133,12 +133,6 @@ async function main() {
       provider: 'gmail.com',
     });
     const paymentsCount = faker.number.int({ min: 10, max: 30 });
-    let paymentCreatedAt: Date = faker.date.past();
-    let paymentUpdatedAt: Date = faker.date.between({
-      from: paymentCreatedAt,
-      to: new Date(),
-    });
-    const status = faker.helpers.arrayElement(paymentStatus);
 
     let balance: number = 0;
     const user = await prisma.user.create({
@@ -148,55 +142,38 @@ async function main() {
         image: faker.image.avatar(),
         password:
           '$2a$13$4.dMmMkp3jbb6nZizXBnluD3pKwZAFNa9L2lMyOccmIu5K.MWtKgO',
-        payments: {
-          createMany: {
-            data: Array.from({
-              length: paymentsCount,
-            }).map(() => {
-              const amount = faker.number.int({ min: 10000, max: 500000 });
-              paymentCreatedAt = faker.date.past();
-              paymentUpdatedAt = faker.date.between({
-                from: createdAt,
-                to: new Date(),
-              });
-
-              balance += amount;
-              return {
-                amount,
-                paymentMethod: faker.helpers.arrayElement(paymentMethods),
-                status,
-                createdAt: paymentCreatedAt,
-                updatedAt: paymentUpdatedAt,
-              };
-            }),
-          },
-        },
-        notifications: {
-          createMany: {
-            data: Array.from({ length: paymentsCount }).map(() => {
-              const message =
-                status === 'completed'
-                  ? 'Transaction completed successfully.'
-                  : status === 'failed'
-                    ? 'Transfer incomplete. Please retry transfer.'
-                    : 'Payment received. Awaiting processing.';
-
-              return {
-                message,
-                type: 'transaction',
-                status,
-                isRead: false,
-                createdAt: paymentUpdatedAt,
-                updatedAt: paymentUpdatedAt,
-              };
-            }),
-          },
-        },
+        emailVerified: true,
         createdAt,
         updatedAt,
         schoolId: faker.helpers.arrayElement(schoolIds),
       },
     });
+
+    const payments: Payment[] = [];
+
+    // Create payments
+    for (let i = 0; i < paymentsCount; i++) {
+      const amount = faker.number.int({ min: 10000, max: 500000 });
+      balance += amount;
+
+      const payment = await prisma.payment.create({
+        data: {
+          amount,
+          userId: user.id,
+          paymentMethod: faker.helpers.arrayElement(paymentMethods),
+          status: faker.helpers.arrayElement(paymentStatus),
+          createdAt: faker.date.past(),
+          updatedAt: faker.date.between({
+            from: createdAt,
+            to: new Date(),
+          }),
+        },
+      });
+
+      payments.push(payment);
+    }
+
+    // Update user balance
     await prisma.user.update({
       where: {
         id: user.id,
@@ -204,6 +181,28 @@ async function main() {
       data: {
         balance,
       },
+    });
+
+    await prisma.notification.createMany({
+      data: payments.map(({ status, updatedAt, id }) => {
+        const message =
+          status === 'completed'
+            ? 'Transaction completed successfully.'
+            : status === 'failed'
+              ? 'Transfer incomplete. Please retry transfer.'
+              : 'Payment received. Awaiting processing.';
+
+        return {
+          message,
+          type: 'transaction',
+          status,
+          isRead: false,
+          paymentId: id,
+          userId: user.id,
+          createdAt: updatedAt,
+          updatedAt: updatedAt,
+        };
+      }),
     });
   }
 }
