@@ -67,13 +67,18 @@ export class WithdrawalsService {
       const users = await tx.user.findMany({
         where: {
           schoolId,
+          balance: {
+            gt: 0,
+          },
         },
       });
 
       // Create payment for each user with negative balance and send notification
       await Promise.all(
         users.map(async (user) => {
-          const amount = user.balance <= 0 ? 0 : -Math.abs(user.balance);
+          if (user.balance <= 0) return;
+
+          const amount = -Math.abs(user.balance);
           await tx.payment.create({
             data: {
               amount,
@@ -100,6 +105,9 @@ export class WithdrawalsService {
         },
         where: {
           schoolId,
+          balance: {
+            gt: 0,
+          },
         },
       });
 
