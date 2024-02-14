@@ -63,7 +63,7 @@ export class WithdrawalsService {
     });
 
     return this.prisma.$transaction(async (tx) => {
-      // Find all users from the school
+      // Find all users from the school with positive balance
       const users = await tx.user.findMany({
         where: {
           schoolId,
