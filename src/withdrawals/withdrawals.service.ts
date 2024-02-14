@@ -73,7 +73,7 @@ export class WithdrawalsService {
       // Create payment for each user with negative balance and send notification
       await Promise.all(
         users.map(async (user) => {
-          const amount = user.balance < 0 ? 0 : -Math.abs(user.balance);
+          const amount = user.balance <= 0 ? 0 : -Math.abs(user.balance);
           await tx.payment.create({
             data: {
               amount,
