@@ -165,6 +165,7 @@ export class UsersController {
           userId: id,
           status: status as PaymentStatus,
         },
+        orderBy: { createdAt: 'asc' },
       });
     }
 
