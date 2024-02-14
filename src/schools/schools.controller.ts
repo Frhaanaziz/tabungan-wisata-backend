@@ -75,7 +75,6 @@ export class SchoolsController {
     return this.eventRegistrations.getEventRegistrations({
       where: { schoolId: id },
       include: { event: true },
-      orderBy: { createdAt: 'asc' },
     });
   }
 }
