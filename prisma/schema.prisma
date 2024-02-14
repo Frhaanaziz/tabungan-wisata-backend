@@ -121,7 +121,7 @@ model Notification {
   userId    String
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   paymentId String?
-  payment   Payment?         @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  payment   Payment?         @relation(fields: [paymentId], references: [id], onDelete: Cascade)
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
