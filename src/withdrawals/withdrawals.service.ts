@@ -63,6 +63,35 @@ export class WithdrawalsService {
     });
 
     return this.prisma.$transaction(async (tx) => {
+      // Find all users from the school
+      const users = await tx.user.findMany({
+        where: {
+          schoolId,
+        },
+      });
+
+      // Create payment for each user with negative balance and send notification
+      await Promise.all(
+        users.map(async (user) => {
+          const amount = user.balance < 0 ? 0 : -Math.abs(user.balance);
+          await tx.payment.create({
+            data: {
+              amount,
+              userId: user.id,
+              status: 'completed',
+              notifications: {
+                create: {
+                  type: 'info',
+                  message: `Your balance of ${amount} has been withdrawn`,
+                  userId: user.id,
+                },
+              },
+            },
+          });
+        }),
+      );
+
+      // Set all users balance to 0
       await tx.user.updateMany({
         data: {
           balance: {
