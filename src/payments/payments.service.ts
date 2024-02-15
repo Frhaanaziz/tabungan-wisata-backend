@@ -138,6 +138,23 @@ export class PaymentsService {
     });
   }
 
+  async getPaymentsOverview() {
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+    const payments = await this.prisma.payment.findMany({
+      where: {
+        createdAt: {
+          gte: startOfYear,
+        },
+        // Only get payments with positive amount
+        amount: {
+          gt: 0,
+        },
+      },
+    });
+
+    return this.utilsService.transformToOverview(payments);
+  }
+
   async createPayment(data: Prisma.PaymentCreateInput): Promise<Payment> {
     return this.prisma.payment.create({
       data,
