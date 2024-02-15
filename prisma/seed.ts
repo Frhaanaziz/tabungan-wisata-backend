@@ -154,14 +154,15 @@ async function main() {
     // Create payments
     for (let i = 0; i < paymentsCount; i++) {
       const amount = faker.number.int({ min: 10000, max: 500000 });
-      balance += amount;
+      const status = faker.helpers.arrayElement(paymentStatus);
+      if (status === 'completed') balance += amount;
 
       const payment = await prisma.payment.create({
         data: {
           amount,
           userId: user.id,
           paymentMethod: faker.helpers.arrayElement(paymentMethods),
-          status: faker.helpers.arrayElement(paymentStatus),
+          status,
           createdAt: faker.date.past(),
           updatedAt: faker.date.between({
             from: createdAt,
@@ -184,7 +185,7 @@ async function main() {
     });
 
     await prisma.notification.createMany({
-      data: payments.map(({ status, updatedAt, id }) => {
+      data: payments.map(({ status, updatedAt, createdAt, id }) => {
         const message =
           status === 'completed'
             ? 'Transaction completed successfully.'
@@ -199,8 +200,8 @@ async function main() {
           isRead: false,
           paymentId: id,
           userId: user.id,
-          createdAt: updatedAt,
-          updatedAt: updatedAt,
+          createdAt,
+          updatedAt,
         };
       }),
     });
