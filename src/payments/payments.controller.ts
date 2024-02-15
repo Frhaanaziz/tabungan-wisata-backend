@@ -65,7 +65,7 @@ export class PaymentsController {
   }
 
   @Admin()
-  @Get('count-new-payments')
+  @Get('/count-new-payments')
   async getNewPayments(@Query() { days = '30' }: { days?: string }) {
     return this.utilsService.getNewItemsLastDays({
       days: parseInt(days),
@@ -74,6 +74,12 @@ export class PaymentsController {
         status: 'completed',
       } satisfies Prisma.PaymentWhereInput,
     });
+  }
+
+  @Admin()
+  @Get('/overview')
+  getPaymentsOverview() {
+    return this.paymentsService.getPaymentsOverview();
   }
 
   @Get(':id')
