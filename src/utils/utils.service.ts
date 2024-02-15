@@ -87,7 +87,7 @@ export class UtilsService {
     where?: object;
   }) {
     // Get the date of a few days ago based on the input days
-    const startDate = new Date(new Date().setDate(new Date().getDate() - days));
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
     // Count the number of items within the date range
     const itemsInRange = await this.prisma[model].count({
@@ -128,6 +128,55 @@ export class UtilsService {
       growth = ((currentCount - lastMonthCount) / lastMonthCount) * 100;
 
     return growth || 0;
+  }
+
+  transformToOverview<T extends { createdAt: Date; amount: number }>(
+    originalData: T[],
+  ) {
+    const transformedData: { name: string; total: number }[] = [];
+
+    // Membuat objek untuk menyimpan total amount per bulan
+    const monthlyTotals: { [key: string]: number } = {};
+
+    originalData.forEach((entry) => {
+      const month = entry.createdAt.getMonth(); // Mendapatkan indeks bulan (0-11)
+
+      // Mengecek apakah sudah ada entry untuk bulan tersebut, jika tidak maka inisialisasi dengan nilai amount
+      if (!monthlyTotals[month]) {
+        monthlyTotals[month] = entry.amount;
+      } else {
+        monthlyTotals[month] += entry.amount;
+      }
+    });
+
+    // Mengonversi data total per bulan menjadi bentuk yang diinginkan
+    for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
+      const total = monthlyTotals[monthIndex] || 0;
+      transformedData.push({
+        name: this.getMonthName(monthIndex),
+        total: total,
+      });
+    }
+
+    return transformedData;
+  }
+
+  getMonthName(monthIndex: number): string {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return months[monthIndex];
   }
 
   verifyJwtToken(token: string) {
