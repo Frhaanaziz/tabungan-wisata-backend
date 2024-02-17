@@ -129,6 +129,13 @@ export class UsersService {
               contains: search,
             },
           },
+          {
+            school: {
+              name: {
+                contains: search,
+              },
+            },
+          },
         ],
       } satisfies Prisma.UserWhereInput,
       include: {
