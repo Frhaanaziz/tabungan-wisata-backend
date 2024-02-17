@@ -24,6 +24,17 @@ export class SchoolsService {
     });
   }
 
+  async getSchoolJoined(
+    schoolWhereUniqueInput: Prisma.SchoolWhereUniqueInput,
+  ): Promise<School | null> {
+    return this.prisma.school.findUnique({
+      where: schoolWhereUniqueInput,
+      include: {
+        schoolAdmins: true,
+      },
+    });
+  }
+
   async getSchools(params: {
     skip?: number;
     take?: number;
@@ -76,6 +87,9 @@ export class SchoolsService {
     return this.prisma.school.update({
       data,
       where,
+      include: {
+        schoolAdmins: true,
+      },
     });
   }
 
