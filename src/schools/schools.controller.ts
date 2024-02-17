@@ -62,7 +62,7 @@ export class SchoolsController {
 
   @Get(':id')
   async getSchoolById(@Param('id') id: string): Promise<School> {
-    const school = await this.schoolsService.getSchool({
+    const school = await this.schoolsService.getSchoolJoined({
       id,
     });
     if (!school) throw new NotFoundException('School not found');
