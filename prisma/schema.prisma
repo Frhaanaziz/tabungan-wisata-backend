@@ -9,23 +9,24 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(cuid())
+  id            String          @id @default(cuid())
   name          String
-  email         String         @unique
+  email         String          @unique
   password      String?
-  role          UserRole       @default(student)
+  role          UserRole        @default(student)
   image         String?
-  emailVerified Boolean        @default(false)
+  emailVerified Boolean         @default(false)
   schoolId      String?
-  balance       Int            @default(0)
+  balance       Int             @default(0)
   payments      Payment[]
   withdrawals   Withdrawal[]
   verifications Verification[]
   notifications Notification[]
   accounts      Account[]
-  school        School?        @relation(fields: [schoolId], references: [id], onDelete: SetNull)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  socketSession SocketSession[]
+  school        School?         @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 
   @@index([schoolId], name: "schoolId")
 }
@@ -38,9 +39,22 @@ model School {
   contact            String
   users              User[]
   withdrawals        Withdrawal[]
+  schoolAdmins       SchoolAdmin[]
   eventRegistrations EventRegistration[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
+}
+
+model SchoolAdmin {
+  id        String   @id @default(cuid())
+  name      String
+  contact   String
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId], name: "schoolId")
 }
 
 model Event {
@@ -175,10 +189,28 @@ model Verification {
   @@index([userId], name: "userId")
 }
 
+model SocketSession {
+  id        String            @id @default(cuid())
+  userId    String
+  socketId  String
+  type      SocketSessionType
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@unique([userId, type], name: "userId_type")
+  @@index([userId], name: "userId")
+}
+
 enum UserRole {
   student
   teacher
   admin
+}
+
+enum SocketSessionType {
+  notification
+  onlineAdmin
 }
 
 enum NotificationType {
