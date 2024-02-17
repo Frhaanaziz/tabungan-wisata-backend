@@ -21,6 +21,7 @@ import { WebhooksModule } from './webhooks/webhooks.module';
 import { WithdrawalsModule } from './withdrawals/withdrawals.module';
 import { EventRegistrationsModule } from './event-registrations/event-registrations.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { SchoolAdminsModule } from './school-admins/school-admins.module';
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     WithdrawalsModule,
     EventRegistrationsModule,
     NotificationsModule,
+    SchoolAdminsModule,
   ],
   providers: [
     AppService,
