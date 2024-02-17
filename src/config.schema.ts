@@ -5,6 +5,7 @@ export const configValidationSchema = Joi.object({
   PORT: Joi.number().required(),
   WS_PORT: Joi.number().required(),
   STUDENT_URL: Joi.string().required(),
+  ADMIN_URL: Joi.string().required(),
 
   JWT_SECRET: Joi.string().required(),
 
