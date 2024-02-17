@@ -1,13 +1,8 @@
 import { OnModuleInit } from '@nestjs/common';
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server } from 'socket.io';
-import { JwtPayload } from 'src/auth/interface/jwt-payload.interface';
 import { UtilsService } from 'src/utils/utils.service';
 import { PrismaService } from 'nestjs-prisma';
-
-export interface socketMetaPayload extends JwtPayload {
-  socketId: string;
-}
 
 @WebSocketGateway(+process.env.WS_PORT, {
   namespace: 'notifications',
@@ -23,7 +18,6 @@ export class NotificationsGateway implements OnModuleInit {
   ) {}
 
   @WebSocketServer() server: Server;
-  socketMap = new Map<string, socketMetaPayload>();
 
   onModuleInit() {
     this.server.on('connection', async (socket) => {
@@ -39,20 +33,48 @@ export class NotificationsGateway implements OnModuleInit {
         socket.disconnect(true);
         return;
       }
-      this.socketMap.set(payload.user.id, { ...payload, socketId: socket.id });
+      // Create or update a new socket session
+      await this.prisma.socketSession.upsert({
+        where: {
+          userId_type: {
+            userId: payload.user.id,
+            type: 'notification',
+          },
+        },
+        update: {
+          socketId: socket.id,
+        },
+        create: {
+          userId: payload.user.id,
+          type: 'notification',
+          socketId: socket.id,
+        },
+      });
 
       await this.emitRecentNotifications({ userId: payload.user.id });
 
-      socket.on('disconnect', () => {
-        this.socketMap.delete(payload.user.id);
+      socket.on('disconnect', async () => {
+        await this.prisma.socketSession.delete({
+          where: {
+            userId_type: {
+              userId: payload.user.id,
+              type: 'notification',
+            },
+          },
+        });
       });
     });
   }
 
   async emitRecentNotifications({ userId }: { userId: string }) {
-    const socketMeta = this.socketMap.get(userId);
+    const socketSession = await this.prisma.socketSession.findMany({
+      where: {
+        userId,
+        type: 'notification',
+      },
+    });
 
-    if (socketMeta) {
+    if (socketSession) {
       const recentNotifications = await this.prisma.notification.findMany({
         take: 4,
         where: {
@@ -63,8 +85,11 @@ export class NotificationsGateway implements OnModuleInit {
         },
       });
 
-      const { socketId } = socketMeta;
-      this.server.to(socketId).emit('recentNotifications', recentNotifications);
+      socketSession.forEach((session) => {
+        this.server
+          .to(session.socketId)
+          .emit('recentNotifications', recentNotifications);
+      });
     }
   }
 }
