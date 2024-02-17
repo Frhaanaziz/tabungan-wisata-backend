@@ -40,6 +40,27 @@ async function main() {
         updatedAt,
         code: generateRandomCode(),
         contact: faker.phone.number(),
+        schoolAdmins: {
+          createMany: {
+            data: Array.from({
+              length: faker.number.int({ min: 2, max: 3 }),
+            }).map(() => {
+              const sex = faker.person.sexType();
+              const firstName = faker.person.firstName(sex);
+              const lastName = faker.person.lastName(sex);
+              const fullName = faker.person.fullName({
+                firstName,
+                lastName,
+                sex,
+              });
+
+              return {
+                name: fullName,
+                contact: faker.phone.number(),
+              };
+            }),
+          },
+        },
       },
     });
     schoolIds.push(school.id);
