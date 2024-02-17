@@ -1,14 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { File, Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
-import { UtilsService } from 'src/utils/utils.service';
 
 @Injectable()
 export class FilesService {
-  constructor(
-    private prisma: PrismaService,
-    private utilsService: UtilsService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async getFile(
     fileWhereUniqueInput: Prisma.FileWhereUniqueInput,
