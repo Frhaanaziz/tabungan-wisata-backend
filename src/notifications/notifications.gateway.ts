@@ -1,17 +1,24 @@
-import { OnModuleInit } from '@nestjs/common';
-import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { Server } from 'socket.io';
+import {
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  WebSocketGateway,
+  WebSocketServer,
+} from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
 import { UtilsService } from 'src/utils/utils.service';
 import { PrismaService } from 'nestjs-prisma';
 
 @WebSocketGateway(+process.env.WS_PORT, {
   namespace: 'notifications',
   cors: {
-    origin: process.env.STUDENT_URL,
+    origin: [process.env.STUDENT_URL, process.env.ADMIN_URL],
     credentials: true,
   },
 })
-export class NotificationsGateway implements OnModuleInit {
+// implements OnGatewayDisconnect, OnGatewayConnection, OnGatewayInit
+export class NotificationsGateway
+  implements OnGatewayDisconnect, OnGatewayConnection
+{
   constructor(
     private readonly utilsService: UtilsService,
     private readonly prisma: PrismaService,
@@ -19,58 +26,64 @@ export class NotificationsGateway implements OnModuleInit {
 
   @WebSocketServer() server: Server;
 
-  onModuleInit() {
-    this.server.on('connection', async (socket) => {
-      const accessToken = socket.handshake.headers.authorization?.split(' ')[1];
+  async handleConnection(client: Socket) {
+    const accessToken = client.handshake.headers.authorization?.split(' ')[1];
 
-      if (!accessToken) {
-        socket.disconnect(true); // disconnect this socket and close the underlying connection "namespace"
-        return;
-      }
+    if (!accessToken) {
+      client.disconnect(true); // disconnect this socket and close the underlying connection "namespace"
+      return;
+    }
 
-      const payload = this.utilsService.verifyJwtToken(accessToken);
-      if (!payload) {
-        socket.disconnect(true);
-        return;
-      }
-      // Create or update a new socket session
-      await this.prisma.socketSession.upsert({
-        where: {
-          userId_type: {
-            userId: payload.user.id,
-            type: 'notification',
-          },
-        },
-        update: {
-          socketId: socket.id,
-        },
-        create: {
+    const payload = this.utilsService.verifyJwtToken(accessToken);
+    if (!payload) {
+      client.disconnect(true);
+      return;
+    }
+
+    // Create or update a new socket session
+    await this.prisma.socketSession.upsert({
+      where: {
+        userId_type: {
           userId: payload.user.id,
           type: 'notification',
-          socketId: socket.id,
         },
-      });
-
-      await this.emitRecentNotifications({ userId: payload.user.id });
-
-      socket.on('disconnect', async () => {
-        await this.prisma.socketSession.delete({
-          where: {
-            userId_type: {
-              userId: payload.user.id,
-              type: 'notification',
-            },
-          },
-        });
-      });
+      },
+      update: {
+        socketId: client.id,
+      },
+      create: {
+        userId: payload.user.id,
+        type: 'notification',
+        socketId: client.id,
+      },
     });
+
+    await this.emitRecentNotifications({ userId: payload.user.id });
+  }
+
+  async handleDisconnect(client: Socket) {
+    const accessToken = client.handshake.headers.authorization?.split(' ')[1];
+    const payload = this.utilsService.verifyJwtToken(accessToken);
+
+    await this.prisma.socketSession.delete({
+      where: {
+        userId_type: {
+          userId: payload.user.id,
+          type: 'notification',
+        },
+      },
+    });
+
+    client.disconnect();
   }
 
   async emitRecentNotifications({ userId }: { userId: string }) {
-    const socketSession = await this.prisma.socketSession.findMany({
+    const socketSession = await this.prisma.socketSession.findUnique({
       where: {
-        userId,
-        type: 'notification',
+        userId_type: {
+          userId,
+          type: 'notification',
+        },
       },
     });
 
@@ -85,11 +98,9 @@ export class NotificationsGateway implements OnModuleInit {
         },
       });
 
-      socketSession.forEach((session) => {
-        this.server
-          .to(session.socketId)
-          .emit('recentNotifications', recentNotifications);
-      });
+      this.server
+        .to(socketSession.socketId)
+        .emit('recentNotifications', recentNotifications);
     }
   }
 }
