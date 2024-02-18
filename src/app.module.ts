@@ -47,7 +47,7 @@ import { SchoolAdminsModule } from './school-admins/school-admins.module';
         middlewares: [
           loggingMiddleware({
             logger: new Logger('Prisma Query'),
-            logLevel: 'log', // default is `debug`
+            logLevel: 'debug', // default is `debug`
             logMessage: (query: QueryInfo) =>
               `${query.model}.${query.action} - ${query.executionTime}ms`,
           }),
