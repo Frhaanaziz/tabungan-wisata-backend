@@ -11,7 +11,7 @@ import { PrismaService } from 'nestjs-prisma';
 @WebSocketGateway(+process.env.WS_PORT, {
   namespace: 'users/online-admins',
   cors: {
-    origin: process.env.ADMIN_URL,
+    origin: [process.env.STUDENT_URL, process.env.ADMIN_URL],
     credentials: true,
   },
 })
@@ -76,6 +76,7 @@ export class OnlineUsersGateway
     });
 
     await this.emitOnlineAdmins();
+    client.disconnect();
   }
 
   async emitOnlineAdmins() {
