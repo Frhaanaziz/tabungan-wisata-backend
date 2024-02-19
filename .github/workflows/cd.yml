@@ -31,5 +31,6 @@ jobs:
             git stash || true
             git pull origin main || true
             pnpm install || true
+            pnpm dlx prisma db push || true
             pnpm run build || true
             NODE_ENV=production pm2 reload tw-dev --update-env || true
