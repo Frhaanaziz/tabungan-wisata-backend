@@ -176,16 +176,17 @@ model File {
 }
 
 model Verification {
-  id        String   @id @default(cuid())
-  type      String
-  token     String   @unique(length: 250) @db.Text
+  id        String           @id @default(cuid())
+  type      VerificationType
+  token     String           @unique(length: 250) @db.Text
   expiresAt DateTime
-  active    Boolean  @default(false)
+  active    Boolean          @default(false)
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 
+  @@unique([userId, type], name: "userId_type")
   @@index([userId], name: "userId")
 }
 
@@ -206,6 +207,12 @@ enum UserRole {
   student
   teacher
   admin
+}
+
+enum VerificationType {
+  emailUpdate
+  emailNew
+  emailResetPassword
 }
 
 enum SocketSessionType {
