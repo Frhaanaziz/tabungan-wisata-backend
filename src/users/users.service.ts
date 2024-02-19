@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, User } from '@prisma/client';
+import { Prisma, User, VerificationType } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UtilsService } from 'src/utils/utils.service';
 import { VerificationsService } from 'src/verifications/verifications.service';
+import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
 
 @Injectable()
 export class UsersService {
@@ -104,6 +105,10 @@ export class UsersService {
     });
   }
 
+  async getUsersCount() {
+    return this.prisma.user.count();
+  }
+
   async getUsersPaginated({
     page,
     take,
@@ -199,6 +204,26 @@ export class UsersService {
     }
   }
 
+  async createPassword({
+    userId,
+    password,
+  }: {
+    userId: string;
+    password: string;
+  }) {
+    const hashedPassword = await this.utilsService.hashPassword(password);
+    const updatedUser = await this.prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        password: hashedPassword,
+      },
+    });
+
+    return updatedUser;
+  }
+
   async updateEmailVerified({
     userId,
     emailVerified,
@@ -208,20 +233,117 @@ export class UsersService {
     emailVerified: boolean;
     token: string;
   }) {
-    const updatedUser = await this.updateUser({
-      where: { id: userId },
-      data: { emailVerified },
+    const decoded = this.utilsService.verifyJwtToken(token);
+    if (!decoded)
+      throw new NotFoundException('Invalid token, please request a new one');
+
+    if (userId !== decoded.user.id)
+      throw new NotFoundException('Invalid token, please request a new one');
+
+    const verification = await this.verificationsService.getVerification({
+      userId_type: {
+        userId,
+        type: VerificationType.emailNew,
+      },
     });
 
-    await this.verificationsService.updateVerification({
-      where: { token },
-      data: { active: true },
-    });
+    if (verification.expiresAt < new Date(Date.now()))
+      throw new NotFoundException('Token expired, please request a new one');
+
+    const [updatedUser] = await Promise.all([
+      this.updateUser({
+        where: { id: userId },
+        data: { emailVerified },
+      }),
+      this.verificationsService.updateVerification({
+        where: {
+          userId_type: {
+            userId,
+            type: VerificationType.emailNew,
+          },
+        },
+        data: { active: true },
+      }),
+    ]);
 
     return updatedUser;
   }
 
-  async getUsersCount() {
-    return this.prisma.user.count();
+  async updateEmail({ token, userId }: { token: string; userId: string }) {
+    const decoded = this.utilsService.verifyJwtToken(token);
+    if (!decoded)
+      throw new NotFoundException('Invalid token, please request a new one');
+
+    if (userId !== decoded.user.id)
+      throw new NotFoundException('Invalid token, please request a new one');
+
+    if (!decoded.user.email)
+      throw new NotFoundException('Invalid token, please request a new one');
+
+    const verification = await this.verificationsService.getVerification({
+      userId_type: {
+        userId,
+        type: VerificationType.emailUpdate,
+      },
+    });
+
+    if (verification.expiresAt < new Date(Date.now()))
+      throw new NotFoundException('Token expired, please request a new one');
+
+    if (verification.active)
+      throw new NotFoundException(
+        'Email already updated, please request a new one',
+      );
+
+    const [updatedUser] = await Promise.all([
+      this.updateUser({
+        where: { id: userId },
+        data: { email: decoded.user.email },
+      }),
+      this.verificationsService.updateVerification({
+        where: {
+          userId_type: {
+            userId,
+            type: VerificationType.emailUpdate,
+          },
+        },
+        data: { active: true },
+      }),
+    ]);
+
+    return updatedUser;
+  }
+
+  async updatePassword({
+    currentPassword,
+    newPassword,
+    userId,
+  }: UpdateUserPasswordDto & { userId: string }) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    if (!user) throw new NotFoundException('Account not found');
+
+    const isPasswordValid = await this.utilsService.comparePassword(
+      currentPassword,
+      user.password,
+    );
+
+    if (!isPasswordValid)
+      throw new NotFoundException('Invalid current password, please try again');
+
+    const hashedPassword = await this.utilsService.hashPassword(newPassword);
+    const updatedUser = await this.prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        password: hashedPassword,
+      },
+    });
+
+    return updatedUser;
   }
 }
