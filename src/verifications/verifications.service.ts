@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Prisma, Verification } from '@prisma/client';
-import { ResendService } from 'nestjs-resend';
+import { Prisma, Verification, VerificationType } from '@prisma/client';
+import { CreateEmailResponse, ResendService } from 'nestjs-resend';
 import { PrismaService } from 'nestjs-prisma';
 import { ONEDAY_IN_MILLISECONDS } from 'src/utils/utils';
 import { UtilsService } from 'src/utils/utils.service';
@@ -22,22 +22,11 @@ export class VerificationsService {
   }
 
   async getVerifications(params: {
-    skip?: number;
-    take?: number;
-    cursor?: Prisma.VerificationWhereUniqueInput;
     where?: Prisma.VerificationWhereInput;
-    orderBy?: Prisma.VerificationOrderByWithRelationInput;
   }): Promise<Verification[]> {
-    const { skip, take, cursor, where, orderBy } = params;
+    const { where } = params;
     return this.prisma.verification.findMany({
-      skip,
-      take,
-      cursor,
       where,
-      orderBy: {
-        updatedAt: 'desc',
-        ...orderBy,
-      },
     });
   }
 
@@ -60,75 +49,102 @@ export class VerificationsService {
     });
   }
 
-  async deleteVerification(
-    where: Prisma.VerificationWhereUniqueInput,
-  ): Promise<Verification> {
-    return this.prisma.verification.delete({
-      where,
-    });
-  }
-
-  private async sendVerificationEmail({
-    email,
-    baseUrl,
-    userId,
-    token,
-  }: {
-    email: string;
-    baseUrl: string;
-    userId: string;
-    token: string;
-  }) {
-    return this.resendService.send({
-      from: 'Tabungan Wisata <tabungan-wisata@aththariq.com>',
-      to: [email],
-      subject: 'Email Verification',
-      html: `<div><h1>Confirm Email</h1><a
-      href="${baseUrl}/api/auth/verify-email?token=${token}&id=${userId}"
-      >Click here to verify your email address</a></div>`,
-    });
-  }
-
-  async sendVerificationEmailForResetPassword({
-    email,
-    baseUrl,
-    token,
-  }: {
-    email: string;
-    baseUrl: string;
-    token: string;
-  }) {
-    return this.resendService.send({
-      from: 'Tabungan Wisata <tabungan-wisata@aththariq.com>',
-      to: [email],
-      subject: 'Email Verification For Reset Password',
-      html: `<div><h1>Confirm Email</h1><a
+  async verifyEmailForResetPassword({ userId, email, baseUrl }) {
+    const emailTemplate = ({ token }: { token: string }) =>
+      this.resendService.send({
+        from: 'Tabungan Wisata <tabungan-wisata@aththariq.com>',
+        to: [email],
+        subject: 'Email Verification For Reset Password',
+        html: `<div><h1>Confirm Email</h1><a
       href="${baseUrl}/auth/reset-password/${token}"
       >Click here to verify your email address</a></div>`,
+      });
+
+    return this.createOrUpdateVerification({
+      userId,
+      userEmail: email,
+      type: VerificationType.emailResetPassword,
+      emailTemplate,
     });
   }
 
-  async verifyEmailForResetPassword({ userId, email, baseUrl }) {
-    const emailTokenPayload = { user: { id: userId } };
+  async verifyNewEmail({ userId, email, baseUrl }) {
+    const emailTemplate = ({ token }: { token: string }) =>
+      this.resendService.send({
+        from: 'Tabungan Wisata <tabungan-wisata@aththariq.com>',
+        to: [email],
+        subject: 'Email Verification',
+        html: `<div><h1>Confirm Email</h1><a
+      href="${baseUrl}/api/auth/verify-new-email?token=${token}&id=${userId}"
+      >Click here to verify your email address</a></div>`,
+      });
+
+    return this.createOrUpdateVerification({
+      userId,
+      userEmail: email,
+      type: VerificationType.emailNew,
+      emailTemplate,
+    });
+  }
+
+  async verifyUpdatedEmail({ userId, email, baseUrl }) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+    if (user) throw new BadRequestException('Email already exists');
+
+    const emailTemplate = ({ token }: { token: string }) =>
+      this.resendService.send({
+        from: 'Tabungan Wisata <tabungan-wisata@aththariq.com>',
+        to: [email],
+        subject: 'Email Verification',
+        html: `<div><h1>Confirm Email</h1><a
+      href="${baseUrl}/api/auth/verify-updated-email?token=${token}&id=${userId}"
+      >Click here to verify your new email address</a></div>`,
+      });
+
+    return this.createOrUpdateVerification({
+      userId,
+      userEmail: email,
+      type: VerificationType.emailUpdate,
+      emailTemplate,
+    });
+  }
+
+  private async createOrUpdateVerification({
+    userId,
+    type,
+    emailTemplate,
+    userEmail,
+  }: {
+    userId: string;
+    type: VerificationType;
+    userEmail: string;
+    emailTemplate: ({
+      token,
+    }: {
+      token: string;
+    }) => Promise<CreateEmailResponse>;
+  }) {
+    const emailTokenPayload = { user: { id: userId, email: userEmail } };
     const emailToken = this.utilsService.generateJwtToken(emailTokenPayload);
 
-    const verifications = await this.getVerifications({
-      where: {
+    const verification = await this.getVerification({
+      userId_type: {
         userId,
-        type: 'email-reset-password',
+        type,
       },
     });
 
-    if (!verifications.length) {
-      this.sendVerificationEmailForResetPassword({
-        email,
-        baseUrl,
-        token: emailToken,
-      });
+    if (!verification) {
+      emailTemplate({ token: emailToken });
 
       await this.createVerification({
         token: emailToken,
-        type: 'email-reset-password',
+        type,
+        active: false,
         expiresAt: new Date(Date.now() + ONEDAY_IN_MILLISECONDS),
         user: {
           connect: {
@@ -137,69 +153,22 @@ export class VerificationsService {
         },
       });
     } else {
-      const isExpired = verifications.find(
-        (verification) =>
-          new Date(verification.expiresAt) < new Date(Date.now()),
-      );
-      if (!isExpired) throw new BadRequestException('Email already sent');
+      // if verification exists and is not active, and not expired, throw error
+      if (
+        new Date(verification.expiresAt) > new Date(Date.now()) &&
+        !verification.active
+      )
+        throw new BadRequestException('Email already sent');
 
-      this.sendVerificationEmailForResetPassword({
-        email,
-        baseUrl,
-        token: emailToken,
-      });
+      emailTemplate({ token: emailToken });
 
       await this.updateVerification({
         where: {
-          id: isExpired.id,
+          id: verification.id,
         },
         data: {
           token: emailToken,
-          expiresAt: new Date(Date.now() + ONEDAY_IN_MILLISECONDS),
-        },
-      });
-    }
-  }
-
-  async verifyEmail({ userId, email, baseUrl }) {
-    const emailTokenPayload = { user: { id: userId } };
-    const emailToken = this.utilsService.generateJwtToken(emailTokenPayload);
-
-    const verifications = await this.getVerifications({
-      where: {
-        userId,
-        type: 'email',
-      },
-    });
-
-    if (!verifications.length) {
-      this.sendVerificationEmail({ email, baseUrl, userId, token: emailToken });
-
-      await this.createVerification({
-        token: emailToken,
-        type: 'email',
-        expiresAt: new Date(Date.now() + ONEDAY_IN_MILLISECONDS),
-        user: {
-          connect: {
-            id: userId,
-          },
-        },
-      });
-    } else {
-      const isExpired = verifications.find(
-        (verification) =>
-          new Date(verification.expiresAt) < new Date(Date.now()),
-      );
-      if (!isExpired) throw new BadRequestException('Email already sent');
-
-      this.sendVerificationEmail({ email, baseUrl, userId, token: emailToken });
-
-      await this.updateVerification({
-        where: {
-          id: isExpired.id,
-        },
-        data: {
-          token: emailToken,
+          active: false,
           expiresAt: new Date(Date.now() + ONEDAY_IN_MILLISECONDS),
         },
       });
