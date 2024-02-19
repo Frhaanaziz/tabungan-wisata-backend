@@ -1,5 +1,6 @@
 import { Payment, PrismaClient } from '@prisma/client';
 import { faker } from '@faker-js/faker';
+import axios from 'axios';
 
 const paymentMethods = [
   'credit_card',
@@ -26,16 +27,25 @@ function generateRandomCode() {
 
 const prisma = new PrismaClient();
 async function main() {
+  console.info('Fetching schools...');
+  const { data } = await axios.get(
+    'https://api-sekolah-indonesia.vercel.app/sekolah?perPage=200&kab_kota=026000',
+  );
+  const schools = data.dataSekolah;
+
   console.info('Creating schools...');
   const schoolIds = [];
-  for (let i = 0; i < faker.number.int({ min: 50, max: 100 }); i++) {
+  await schools.map(async (school) => {
+    const { kabupaten_kota, kecamatan, sekolah, bentuk, alamat_jalan } = school;
+    if (bentuk === 'SD') return undefined;
+
     const createdAt = faker.date.past();
     const updatedAt = faker.date.between({ from: createdAt, to: new Date() });
 
-    const school = await prisma.school.create({
+    const newSchool = await prisma.school.create({
       data: {
-        name: faker.company.name(),
-        address: faker.location.streetAddress(),
+        name: sekolah,
+        address: `${alamat_jalan}, ${kecamatan}, ${kabupaten_kota}`,
         createdAt,
         updatedAt,
         code: generateRandomCode(),
@@ -63,8 +73,9 @@ async function main() {
         },
       },
     });
-    schoolIds.push(school.id);
-  }
+
+    schoolIds.push(newSchool.id);
+  });
 
   console.info('Creating events...');
   const eventIds = [];
