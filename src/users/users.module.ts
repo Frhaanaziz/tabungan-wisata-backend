@@ -13,6 +13,7 @@ import { OnlineUsersGateway } from './online.gateway';
     VerificationsModule,
     PaymentsModule,
     NotificationsModule,
+    VerificationsModule,
   ],
   controllers: [UsersController],
   providers: [UsersService, OnlineUsersGateway],
