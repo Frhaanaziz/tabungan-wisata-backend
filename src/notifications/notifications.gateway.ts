@@ -7,6 +7,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { UtilsService } from 'src/utils/utils.service';
 import { PrismaService } from 'nestjs-prisma';
+import { Logger } from '@nestjs/common';
 
 @WebSocketGateway(+process.env.WS_PORT, {
   namespace: 'notifications',
@@ -19,6 +20,7 @@ import { PrismaService } from 'nestjs-prisma';
 export class NotificationsGateway
   implements OnGatewayDisconnect, OnGatewayConnection
 {
+  private readonly logger = new Logger(NotificationsGateway.name);
   constructor(
     private readonly utilsService: UtilsService,
     private readonly prisma: PrismaService,
@@ -65,14 +67,18 @@ export class NotificationsGateway
     const accessToken = client.handshake.headers.authorization?.split(' ')[1];
     const payload = this.utilsService.verifyJwtToken(accessToken);
 
-    await this.prisma.socketSession.delete({
-      where: {
-        userId_type: {
-          userId: payload.user.id,
-          type: 'notification',
+    try {
+      await this.prisma.socketSession.delete({
+        where: {
+          userId_type: {
+            userId: payload.user.id,
+            type: 'notification',
+          },
         },
-      },
-    });
+      });
+    } catch (error) {
+      this.logger.error(error);
+    }
 
     client.disconnect();
   }
