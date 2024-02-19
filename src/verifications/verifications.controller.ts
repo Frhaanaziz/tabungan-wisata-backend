@@ -12,6 +12,7 @@ import { UtilsService } from 'src/utils/utils.service';
 import { VerifyTokenDto } from './dto/verify-token.dto';
 import { Prisma, User } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
+import { VerifyUpdatedEmailDto } from './dto/verify-updated-email.dto';
 
 @Controller('verifications')
 export class VerificationsController {
@@ -31,17 +32,11 @@ export class VerificationsController {
     });
   }
 
-  @Public()
-  @Post('/verify-email')
-  async verifyEmail(@Body() { baseUrl, email }: VerifyEmailDto) {
-    const user = await this.getUser({ where: { email } });
-    if (!user) throw new BadRequestException('Account does not exist');
-
-    return this.verificationsService.verifyEmail({
-      baseUrl,
-      email,
-      userId: user.id,
-    });
+  @Post('/verify-updated-email')
+  async verifyUpdatedEmail(
+    @Body() verifyUpdatedEmailDto: VerifyUpdatedEmailDto,
+  ) {
+    return this.verificationsService.verifyUpdatedEmail(verifyUpdatedEmailDto);
   }
 
   @Public()
