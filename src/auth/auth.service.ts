@@ -80,13 +80,13 @@ export class AuthService {
         school: { connect: { id: school.id } },
       });
 
-      await this.verificationsService.verifyEmail({
+      await this.verificationsService.verifyNewEmail({
         userId: user.id,
         email,
         baseUrl,
       });
     } else if (!exist.emailVerified) {
-      await this.verificationsService.verifyEmail({
+      await this.verificationsService.verifyNewEmail({
         userId: exist.id,
         email,
         baseUrl,
