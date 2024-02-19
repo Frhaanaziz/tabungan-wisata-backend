@@ -20,6 +20,12 @@ import { GetPaginatedDataDto } from 'src/utils/dto/get-paginated-data.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { PaymentStatus } from '@prisma/client';
+import { UpdateUserImageDto } from './dto/update-user-image.dto';
+import { VerificationsService } from 'src/verifications/verifications.service';
+import { UpdateUserEmailDto } from './dto/update-user-email.dto';
+import { UpdateUserNameDto } from './dto/update-user-name.dto';
+import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
+import { CreateUserPasswordDto } from './dto/create-user-password.dto';
 
 @Controller('users')
 export class UsersController {
@@ -28,6 +34,7 @@ export class UsersController {
     private utilsService: UtilsService,
     private paymentsService: PaymentsService,
     private notificationsService: NotificationsService,
+    private verficationsService: VerificationsService,
   ) {}
 
   @Admin()
@@ -122,6 +129,27 @@ export class UsersController {
     return user;
   }
 
+  // @Put(':id')
+  // async updateUserById(
+  //   @Param('id') id: string,
+  //   @Body() { email, ...rest }: UpdateUserDto,
+  // ) {
+  //   const updatedUser = await this.usersService.updateUser({
+  //     where: { id },
+  //     data: rest,
+  //   });
+
+  //   if (email && email !== updatedUser.email) {
+  //     await this.verficationsService.verifyUpdatedEmail({
+  //       baseUrl: process.env.STUDENT_URL,
+  //       email,
+  //       userId: id,
+  //     });
+  //   }
+
+  //   return updatedUser;
+  // }
+
   @Get(':id/balance')
   async getUserBalance(@Param('id') id: string) {
     const user = await this.usersService.getUser({
@@ -200,6 +228,17 @@ export class UsersController {
     });
   }
 
+  @Post(':id/password')
+  async createPassword(
+    @Param('id') id: string,
+    @Body() { newPassword }: CreateUserPasswordDto,
+  ) {
+    return this.usersService.createPassword({
+      userId: id,
+      password: newPassword,
+    });
+  }
+
   @Patch(':id/school')
   updateUserSchoolByCode(
     @Param('id') id: string,
@@ -217,6 +256,50 @@ export class UsersController {
       userId: id,
       emailVerified,
       token,
+    });
+  }
+
+  @Patch(':id/email')
+  updateUserEmail(
+    @Param('id') id: string,
+    @Body() { token }: UpdateUserEmailDto,
+  ) {
+    return this.usersService.updateEmail({
+      token,
+      userId: id,
+    });
+  }
+
+  @Patch(':id/image')
+  updateUserImage(
+    @Param('id') id: string,
+    @Body() updateUserImageDto: UpdateUserImageDto,
+  ) {
+    return this.usersService.updateUser({
+      where: { id },
+      data: { image: updateUserImageDto?.image ?? null },
+    });
+  }
+
+  @Patch(':id/name')
+  updateUserName(
+    @Param('id') id: string,
+    @Body() updateUserNameDto: UpdateUserNameDto,
+  ) {
+    return this.usersService.updateUser({
+      where: { id },
+      data: updateUserNameDto,
+    });
+  }
+
+  @Patch(':id/password')
+  updateUserPassword(
+    @Param('id') id: string,
+    @Body() updateUserPasswordDto: UpdateUserPasswordDto,
+  ) {
+    return this.usersService.updatePassword({
+      ...updateUserPasswordDto,
+      userId: id,
     });
   }
 }
