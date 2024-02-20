@@ -198,6 +198,15 @@ export class UsersService {
         },
       });
 
+      await this.verificationsService.updateVerification({
+        where: {
+          userId_type: {
+            userId,
+            type: VerificationType.emailResetPassword,
+          },
+        },
+        data: { active: true },
+      });
       return updatedUser;
     } catch (error) {
       throw new NotFoundException('Account not found');
