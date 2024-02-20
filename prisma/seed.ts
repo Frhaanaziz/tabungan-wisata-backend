@@ -90,7 +90,7 @@ async function main() {
 
     const event = await prisma.event.create({
       data: {
-        name: faker.company.name(),
+        name: faker.location.city(),
         include: generateRandomEventInclude(),
         exclude: generateRandomEventInclude(),
         cost: faker.number.int({ min: 1000000, max: 5000000 }),
@@ -128,10 +128,29 @@ async function main() {
 
   console.info('Creating event registrations...');
   schoolIds.forEach(async (schoolId) => {
-    const startDate = new Date();
+    // const startDate = faker.date.future();
+    const startDate = faker.date.between({
+      from: new Date(),
+      to: new Date(
+        new Date().getTime() +
+          1000 *
+            60 *
+            60 *
+            24 *
+            Math.floor(faker.number.int({ min: 20, max: 60 })),
+      ),
+    });
     const endDate = faker.date.between({
       from: startDate,
-      to: faker.date.future(),
+      // 2 - 7 days
+      to: new Date(
+        startDate.getTime() +
+          1000 *
+            60 *
+            60 *
+            24 *
+            Math.floor(faker.number.int({ min: 2, max: 7 })),
+      ),
     });
     await prisma.eventRegistration.createMany({
       data: Array.from({ length: faker.number.int({ min: 1, max: 2 }) }).map(
@@ -185,7 +204,8 @@ async function main() {
 
     // Create payments
     for (let i = 0; i < paymentsCount; i++) {
-      const amount = faker.number.int({ min: 10000, max: 500000 });
+      const amount =
+        Math.round(faker.number.int({ min: 10000, max: 500000 }) / 1000) * 1000;
       const status = faker.helpers.arrayElement(paymentStatus);
       if (status === 'completed') balance += amount;
 
