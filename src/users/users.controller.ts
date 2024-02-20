@@ -19,7 +19,7 @@ import { PaymentsService } from 'src/payments/payments.service';
 import { GetPaginatedDataDto } from 'src/utils/dto/get-paginated-data.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
-import { PaymentStatus } from '@prisma/client';
+import { PaymentStatus, VerificationType } from '@prisma/client';
 import { UpdateUserImageDto } from './dto/update-user-image.dto';
 import { VerificationsService } from 'src/verifications/verifications.service';
 import { UpdateUserEmailDto } from './dto/update-user-email.dto';
@@ -62,14 +62,30 @@ export class UsersController {
   ) {
     if (!token) throw new UnauthorizedException('Unauthorized');
 
-    const payload = this.utilsService.verifyJwtToken(token);
-    if (!payload)
+    const decoded = this.utilsService.verifyJwtToken(token);
+    if (!decoded)
       throw new UnauthorizedException(
         'Invalid token, please request a new one',
       );
 
+    const verification = await this.verficationsService.getVerification({
+      userId_type: {
+        userId: decoded.user.id,
+        type: VerificationType.emailResetPassword,
+      },
+    });
+    if (!verification)
+      throw new UnauthorizedException(
+        'Invalid token, please request a new one',
+      );
+
+    if (verification.active)
+      throw new UnauthorizedException(
+        'Password already reset, please request a new one',
+      );
+
     return this.usersService.resetPassword({
-      userId: payload.user.id,
+      userId: decoded.user.id,
       newPassword,
     });
   }
