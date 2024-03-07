@@ -112,15 +112,16 @@ model Withdrawal {
 }
 
 model EventRegistration {
-  id        String   @id @default(cuid())
-  cost      Int
-  startDate DateTime
-  endDate   DateTime
-  eventId   String
-  schoolId  String
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  cost         Int
+  startDate    DateTime
+  endDate      DateTime
+  paymentLimit DateTime
+  eventId      String
+  schoolId     String
+  event        Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  school       School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
 
   @@index([eventId], name: "eventId")
   @@index([schoolId], name: "schoolId")
