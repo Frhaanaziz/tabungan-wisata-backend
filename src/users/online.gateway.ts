@@ -90,11 +90,14 @@ export class OnlineUsersGateway
       where: {
         type: 'onlineAdmin',
       },
-      select: {
-        user: true,
+    });
+    const onlineAdmins = await this.prisma.user.findMany({
+      where: {
+        id: {
+          in: socketSession.map((session) => session.userId),
+        },
       },
     });
-    const onlineAdmins = socketSession.map((session) => session.user);
 
     this.server.emit('onlineAdmins', onlineAdmins);
   }
