@@ -35,6 +35,32 @@ export class SchoolsService {
     });
   }
 
+  async getSchoolForExport(
+    schoolWhereUniqueInput: Prisma.SchoolWhereUniqueInput,
+  ): Promise<School | null> {
+    return this.prisma.school.findUniqueOrThrow({
+      where: schoolWhereUniqueInput,
+      include: {
+        schoolAdmins: true,
+        eventRegistrations: {
+          include: {
+            event: true,
+          },
+        },
+        users: {
+          include: {
+            payments: true,
+          },
+        },
+        withdrawals: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+  }
+
   async getSchools(params: {
     skip?: number;
     take?: number;
