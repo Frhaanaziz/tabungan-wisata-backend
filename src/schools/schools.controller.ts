@@ -70,6 +70,11 @@ export class SchoolsController {
     return school;
   }
 
+  @Get(':id/for-export')
+  async getSchoolForExport(@Param('id') id: string): Promise<School> {
+    return this.schoolsService.getSchoolForExport({ id });
+  }
+
   @Get(':id/eventRegistrations')
   async getSchoolEventRegistrations(@Param('id') id: string) {
     return this.eventRegistrations.getEventRegistrations({
