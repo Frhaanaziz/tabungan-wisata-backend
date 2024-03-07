@@ -130,14 +130,14 @@ async function main() {
   schoolIds.forEach(async (schoolId) => {
     // const startDate = faker.date.future();
     const startDate = faker.date.between({
-      from: new Date(),
+      from: new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 1),
       to: new Date(
         new Date().getTime() +
           1000 *
             60 *
             60 *
             24 *
-            Math.floor(faker.number.int({ min: 20, max: 60 })),
+            Math.floor(faker.number.int({ min: 60, max: 120 })),
       ),
     });
     const endDate = faker.date.between({
@@ -152,12 +152,17 @@ async function main() {
             Math.floor(faker.number.int({ min: 2, max: 7 })),
       ),
     });
+    const paymentLimit = faker.date.between({
+      from: new Date(),
+      to: startDate,
+    });
     await prisma.eventRegistration.createMany({
       data: Array.from({ length: faker.number.int({ min: 1, max: 2 }) }).map(
         () => ({
           cost: faker.number.int({ min: 1_000_000, max: 3000000 }),
           startDate,
           endDate,
+          paymentLimit,
           schoolId,
           eventId: faker.helpers.arrayElement(eventIds),
         }),
