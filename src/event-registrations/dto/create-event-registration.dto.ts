@@ -37,4 +37,7 @@ export class CreateEventRegistrationDto {
 
   @IsDateString()
   endDate: string;
+
+  @IsDateString()
+  paymentLimit: string;
 }
